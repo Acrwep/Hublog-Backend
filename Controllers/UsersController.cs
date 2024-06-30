@@ -1,4 +1,7 @@
-﻿using EMP.Models.Master;
+﻿using Dapper;
+using System.Data;
+using System.Data.SqlClient;
+using EMP.Models.Master;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -11,6 +14,10 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Http;
 
+using EMP.Models; // Adjust the namespace as per your project structure
+
+
+
 namespace EMP.Controllers
 {
     public class UsersController : ApiController
@@ -20,52 +27,96 @@ namespace EMP.Controllers
         private readonly LogErrors _logErrors = new LogErrors();
         CommonFunctiton objfun = new CommonFunctiton();
 
+        // Ensure this is imported for SQL Server usage
 
-
-        [Authorize(Roles = "EMPLOYEE")]
+        //[Authorize(Roles = "EMPLOYEE")]
         [HttpPost]
-        public HttpResponseMessage InsertAttendance(List<UserAttendanceModel> model)
+        public async Task<IHttpActionResult> InsertAttendance(List<UserAttendanceModel> model)
         {
-            Thread.CurrentPrincipal = HttpContext.Current.User;
-            HttpResponseMessage response = null;
-            if (ModelState.IsValid)
+            try
             {
-                try
+                if (!ModelState.IsValid)
                 {
-                    string details = JsonConvert.SerializeObject(model);
-                    details = details.Replace("\"null\"", "\"\"");
-                    details = details.Replace("null", "\"\"");
-                    details = details.Replace("'", "");
-                    var result = Task.FromResult(_dapper.Get<ResultModel>("Exec [SP_Attendance] '" + details + "'"));
-                    if (result.IsCompleted)
+                    _logErrors.WriteDirectLog("InsertAttendance", "Model State is Not Valid");
+                    return BadRequest(ModelState);
+                }
+
+                foreach (var attendanceModel in model)
+                {
+                    var parameters = new DynamicParameters();
+                    parameters.Add("@UserId", attendanceModel.UserId);
+                    parameters.Add("@OrganizationId", attendanceModel.OrganizationId);
+                    parameters.Add("@AttendanceDate", attendanceModel.AttendanceDate);
+                    parameters.Add("@Start_Time", attendanceModel.Start_Time);
+                    parameters.Add("@End_Time", attendanceModel.End_Time);
+                    parameters.Add("@Total_Time", attendanceModel.Total_Time);
+                    parameters.Add("@Late_Time", attendanceModel.Late_Time);
+                    parameters.Add("@Status", attendanceModel.Status);
+
+                    // Execute the stored procedure using Dapper
+                    var result = await _dapper.ExecuteAsync("SP_InsertAttendance", parameters, CommandType.StoredProcedure);
+
+                    if (result <= 0)
                     {
-                        if (result.Result.Result == 1)
-                        {
-                            response = Request.CreateResponse(HttpStatusCode.OK, "InsertAttendance" + Message.CreateSuccess);
-                        }
-                        else
-                        {
-                            response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "Error"+ result.Result.Msg);
-                        }
-                    }
-                    else
-                    {
-                        response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "Error" + result.Result.Msg);
+                       // return NotFound(new { Message = "Error: Insertion failed for UserId " + attendanceModel.UserId });
+
+
                     }
                 }
-                catch (Exception ex)
-                {
-                    _logErrors.Writelog(ex, "Users", "InsertAttendance");
-                    response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex);
-                }
+
+                // Assuming all entries were processed successfully
+                return Ok("InsertAttendance" + Message.CreateSuccess);
             }
-            else
+            catch (Exception ex)
             {
-                _logErrors.WriteDirectLog("InsertAttendance", "UserLogin" + "Model State is Not Valid");
-                response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Model State is Not Valid");
+                _logErrors.Writelog(ex, "Users", "InsertAttendance");
+                return InternalServerError(ex);
             }
-            return response;
         }
+        // [Authorize(Roles = "EMPLOYEE")]
+        //[HttpPost]
+        //public HttpResponseMessage InsertAttendance(List<UserAttendanceModel> model)
+        //{
+        //    Thread.CurrentPrincipal = HttpContext.Current.User;
+        //    HttpResponseMessage response = null;
+        //    if (ModelState.IsValid)
+        //    {
+        //        try
+        //        {
+        //            string details = JsonConvert.SerializeObject(model);
+        //            details = details.Replace("\"null\"", "\"\"");
+        //            details = details.Replace("null", "\"\"");
+        //            details = details.Replace("'", "");
+        //            var result = Task.FromResult(_dapper.Get<ResultModel>("Exec [SP_InsertAttendance] '" + details + "'"));
+        //            if (result.IsCompleted)
+        //            {
+        //                if (result.Result.Result == 1)
+        //                {
+        //                    response = Request.CreateResponse(HttpStatusCode.OK, "InsertAttendance" + Message.CreateSuccess);
+        //                }
+        //                else
+        //                {
+        //                    response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "Error"+ result.Result.Msg);
+        //                }
+        //            }
+        //            else
+        //            {
+        //                response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "Error" + result.Result.Msg);
+        //            }
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            _logErrors.Writelog(ex, "Users", "InsertAttendance");
+        //            response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex);
+        //        }
+        //    }
+        //    else
+        //    {
+        //        _logErrors.WriteDirectLog("InsertAttendance", "UserLogin" + "Model State is Not Valid");
+        //        response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Model State is Not Valid");
+        //    }
+        //    return response;
+        //}
 
         [Authorize(Roles = "EMPLOYEE")]
         [HttpPost]
@@ -262,5 +313,179 @@ namespace EMP.Controllers
             }
             return response;
         }
-    }
+
+        [HttpGet]
+        public HttpResponseMessage GetAllUsers()
+        {
+            HttpResponseMessage response = null;
+
+            try
+            {
+                var result = _dapper.GetAll<Users>("SELECT * FROM Users WITH (NOLOCK)");
+
+                if (result != null && result.Any())
+                {
+                    response = Request.CreateResponse(HttpStatusCode.OK, result);
+                }
+                else
+                {
+                    response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "No Data Found");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logErrors.Writelog(ex, "Users", "GetAllUsers");
+                response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex.Message);
+            }
+
+            return response;
+        }
+
+        [HttpGet]
+        public HttpResponseMessage GetUsersByOrganizationId([FromUri] int OrganizationId)
+        {
+            HttpResponseMessage response = null;
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    var query = "SELECT * FROM Users WHERE OrganizationId = @OrganizationId AND Active = 1";
+                    var result = _dapper.GetAll<Users>(query, new { OrganizationId = OrganizationId });
+
+                    if (result.Any())
+                    {
+                        response = Request.CreateResponse(HttpStatusCode.OK, result);
+                    }
+                    else
+                    {
+                        response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "No Data Found");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logErrors.Writelog(ex, "Users", "GetUsersByOrganizationId");
+                    response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex);
+                }
+            }
+            else
+            {
+                _logErrors.WriteDirectLog("Users", "GetUsersByOrganizationId - Model State is Not Valid");
+                response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Model State is Not Valid");
+            }
+
+            return response;
+        }
+
+        [HttpPost]
+        public async Task<HttpResponseMessage> InsertUser(Users user)
+        {
+            HttpResponseMessage response = null;
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    string query = @"
+                INSERT INTO Users (First_Name, Last_Name, Email, DOB, DOJ, Phone, UsersName, Password, Gender, OrganizationId, RoleId, DesignationId, TeamId, Active, EmployeeID) 
+                VALUES (@First_Name, @Last_Name, @Email, @DOB, @DOJ, @Phone, @UsersName, @Password, @Gender, @OrganizationId, @RoleId, @DesignationId, @TeamId, @Active, @EmployeeID)";
+
+                    user.Active = true;
+
+                    var result = await _dapper.ExecuteAsync(query, user);
+                    if (result > 0)
+                    {
+                        response = Request.CreateResponse(HttpStatusCode.Created, user);
+                    }
+                    else
+                    {
+                        response = Request.CreateErrorResponse(HttpStatusCode.InternalServerError, "Could not create user");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logErrors.Writelog(ex, "Users", "InsertUser");
+                    response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex);
+                }
+            }
+            else
+            {
+                _logErrors.WriteDirectLog("Users", "InsertUser - Model State is Not Valid");
+                response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Model State is Not Valid");
+            }
+
+            return response;
+        }
+        [HttpPut]
+        public async Task<HttpResponseMessage> UpdateUser(Users user)
+        {
+            HttpResponseMessage response = null;
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    string query = @"
+                UPDATE Users 
+                SET First_Name = @First_Name, Last_Name = @Last_Name, Email = @Email, DOB = @DOB, DOJ = @DOJ, Phone = @Phone, 
+                    UsersName = @UsersName, Password = @Password, Gender = @Gender, OrganizationId = @OrganizationId, 
+                    RoleId = @RoleId, DesignationId = @DesignationId, TeamId = @TeamId, Active = @Active, EmployeeID = @EmployeeID 
+                WHERE Id = @Id";
+
+                    var result = await _dapper.ExecuteAsync(query, user);
+                    if (result > 0)
+                    {
+                        response = Request.CreateResponse(HttpStatusCode.OK, user);
+                    }
+                    else
+                    {
+                        response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "User not found");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logErrors.Writelog(ex, "Users", "UpdateUser");
+                    response = Request.CreateErrorResponse(HttpStatusCode.InternalServerError, "Error updating user");
+                }
+            }
+            else
+            {
+                _logErrors.WriteDirectLog("Users", "UpdateUser - Model State is Not Valid");
+                response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Model State is Not Valid");
+            }
+
+            return response;
+        }
+
+
+        [HttpDelete]
+        public async Task<HttpResponseMessage> DeleteUser(int id)
+        {
+            HttpResponseMessage response = null;
+
+            try
+            {
+                string query = "DELETE FROM Users WHERE Id = @Id";
+
+                var result = await _dapper.ExecuteAsync(query, new { Id = id });
+
+                if (result > 0)
+                {
+                    response = Request.CreateResponse(HttpStatusCode.OK, $"User with Id {id} deleted successfully");
+                }
+                else
+                {
+                    response = Request.CreateErrorResponse(HttpStatusCode.NotFound, $"User with Id {id} not found");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logErrors.Writelog(ex, "Users", "DeleteUser");
+                response = Request.CreateErrorResponse(HttpStatusCode.InternalServerError, "Error deleting user");
+            }
+
+            return response;
+        }
+    
+}
 }
