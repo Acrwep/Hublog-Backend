@@ -262,6 +262,7 @@
     <Compile Include="Controllers\DesignationController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\LoginController.cs" />
+    <Compile Include="Controllers\TeamsController.cs" />
     <Compile Include="Controllers\UsersController.cs" />
     <Compile Include="Controllers\ValuesController.cs" />
     <Compile Include="Global.asax.cs">
@@ -329,6 +330,7 @@
     <Folder Include="Views\Admin\" />
     <Folder Include="Views\Designation\" />
     <Folder Include="Views\Design\" />
+    <Folder Include="Views\Teams\" />
     <Folder Include="Views\Users\" />
   </ItemGroup>
   <ItemGroup>
