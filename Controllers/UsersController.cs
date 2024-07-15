@@ -387,8 +387,10 @@ namespace EMP.Controllers
                 try
                 {
                     string query = @"
-                INSERT INTO Users (First_Name, Last_Name, Email, DOB, DOJ, Phone, UsersName, Password, Gender, OrganizationId, RoleId, DesignationId, TeamId, Active, EmployeeID) 
-                VALUES (@First_Name, @Last_Name, @Email, @DOB, @DOJ, @Phone, @UsersName, @Password, @Gender, @OrganizationId, @RoleId, @DesignationId, @TeamId, @Active, @EmployeeID)";
+                INSERT INTO Users (First_Name, Last_Name, Email, DOB, DOJ, Phone, UsersName, Password, 
+Gender, OrganizationId, RoleId, DesignationId, TeamId, Active, EmployeeID) 
+                VALUES (@First_Name, @Last_Name, @Email, @DOB, @DOJ, @Phone, @UsersName, @Password,
+@Gender, @OrganizationId, @RoleId, @DesignationId, @TeamId, @Active, @EmployeeID)";
 
                     user.Active = true;
 
