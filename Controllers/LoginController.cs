@@ -24,6 +24,7 @@ namespace EMP.AppControllers.key
 
         [AllowAnonymous]
         [HttpPost]
+        #region Login
         public HttpResponseMessage UserLogin(LoginModels model)
         {
             HttpResponseMessage response = null;
@@ -37,7 +38,7 @@ namespace EMP.AppControllers.key
                         if (result.Result.Count != 0)
                         {
                             var token = CommonFunctiton.CreateToken(result.Result[0]);
-                            response = Request.CreateResponse(new { user =result.Result[0],token= token });
+                            response = Request.CreateResponse(new { user = result.Result[0], token = token });
                         }
                         else
                         {
@@ -57,11 +58,12 @@ namespace EMP.AppControllers.key
             }
             else
             {
-                _logErrors.WriteDirectLog("Login", "UserLogin"+ "Model State is Not Valid");
+                _logErrors.WriteDirectLog("Login", "UserLogin" + "Model State is Not Valid");
                 response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Model State is Not Valid");
             }
             return response;
         }
+        #endregion
 
         [AllowAnonymous]
         [HttpPost]
