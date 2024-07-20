@@ -21,8 +21,8 @@ namespace EMP.Controllers
         CommonFunctiton objfun = new CommonFunctiton();
 
 
-        //[Authorize(Roles = "SUPER_ADMIN,ADMIN,USERS,EMPLOYEE")]
-        //[Authorize]
+        [Authorize(Roles = "SUPER_ADMIN,ADMIN,USERS,EMPLOYEE")]
+        [Authorize]
         [HttpGet]
         public HttpResponseMessage GetDesignationAll()
         {
@@ -49,8 +49,8 @@ namespace EMP.Controllers
 
             return response;
         }
-        //[Authorize(Roles = "SUPER_ADMIN,ADMIN,USERS,EMPLOYEE")]
-        // [Authorize]
+        [Authorize(Roles = "SUPER_ADMIN,ADMIN,USERS,EMPLOYEE")]
+        [Authorize]
         [HttpGet]
         public HttpResponseMessage GetDesignationById([FromUri] int OrganizationId)
         {

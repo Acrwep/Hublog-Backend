@@ -102,7 +102,7 @@ namespace EMP.Controllers
             return response;
         }
 
-        //[Authorize(Roles = "SUPER_ADMIN,ADMIN,USERS,EMPLOYEE")]
+        [Authorize(Roles = "SUPER_ADMIN,ADMIN,USERS,EMPLOYEE")]
         [HttpGet]
         public HttpResponseMessage GetDesignationMaster(GetModels obj)
         {
