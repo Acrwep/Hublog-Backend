@@ -273,49 +273,6 @@ namespace EMP.Controllers
         }
 
         #region commented old GetAvailableBreak
-        //[Authorize(Roles = "EMPLOYEE")]
-        //[HttpPost]
-        //public HttpResponseMessage GetAvailableBreak(GetModels obj)
-        //{
-        //    Thread.CurrentPrincipal = HttpContext.Current.User;
-        //    HttpResponseMessage response = null;
-        //    if (ModelState.IsValid)
-        //    {
-        //        try
-        //        {
-        //            var result = Task.FromResult(_dapper.GetAll<BreakMaster>("select * from BreakMaster B with(Nolock) where B.OrganizationId=" + obj.OrganizationId + " and B.Active=1 and B.id not in(select distinct(BreakEntryId) from BreakEntry BE where BE.BreakDate='" + obj.CDate + "' and  BE.UserId='" + obj.UserId + "' and  BE.OrganizationId='" + obj.OrganizationId + "') ").ToList());
-        //            if (result.IsCompleted)
-        //            {
-        //                if (result.Result.Count != 0)
-        //                {
-        //                    response = Request.CreateResponse(HttpStatusCode.OK, result.Result);
-        //                }
-        //                else
-        //                {
-        //                    response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "No Data Found");
-        //                }
-        //            }
-        //            else
-        //            {
-        //                response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "Error");
-        //            }
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            _logErrors.Writelog(ex, "Users", "GetAvailableBreak");
-        //            response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex);
-        //        }
-        //    }
-        //    else
-        //    {
-        //        _logErrors.WriteDirectLog("Users", "GetAvailableBreak" + "Model State is Not Valid");
-        //        response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Model State is Not Valid");
-        //    }
-        //    return response;
-        //}
-        #endregion
-
-        #region New GetAvailableBreak
         [Authorize(Roles = "EMPLOYEE")]
         [HttpPost]
         public HttpResponseMessage GetAvailableBreak(GetModels obj)
@@ -326,21 +283,11 @@ namespace EMP.Controllers
             {
                 try
                 {
+                    //var result = Task.FromResult(_dapper.GetAll<BreakMaster>("select * from BreakMaster B with(Nolock) where B.OrganizationId=" + obj.OrganizationId + " and B.Active=1 and B.id not in(select distinct(Id) from BreakEntry BE where BE.BreakDate='" + obj.CDate + "' and  BE.UserId='" + obj.UserId + "' and  BE.OrganizationId='" + obj.OrganizationId + "') ").ToList());
                     var result = Task.FromResult(_dapper.GetAll<BreakMaster>(
-                        "SELECT * FROM BreakMaster B WITH(NOLOCK) " +
-                        "WHERE B.OrganizationId = @OrganizationId " +
-                        "AND B.Active = 1 " +
-                        "AND B.Id NOT IN (SELECT DISTINCT BE.Id " +
-                        "FROM BreakEntry BE " +
-                        "WHERE CAST(BE.Start_Time AS DATE) = @CDate " +
-                        "AND BE.UserId = @UserId " +
-                        "AND BE.OrganizationId = @OrganizationId)"
-                    , new
-                    {
-                        OrganizationId = obj.OrganizationId,
-                        CDate = obj.CDate,
-                        UserId = obj.UserId
-                    }).ToList());
+                                "select * from BreakMaster B with(Nolock) where B.OrganizationId=" + obj.OrganizationId +
+                                " and B.Active=1 and B.id not in(select distinct(Id) from BreakEntry BE where BE.Start_Time='" + obj.CDate +
+                                "' and BE.UserId='" + obj.UserId + "' and BE.OrganizationId='" + obj.OrganizationId + "')").ToList());
 
                     if (result.IsCompleted)
                     {
@@ -371,6 +318,64 @@ namespace EMP.Controllers
             }
             return response;
         }
+        #endregion
+
+        #region New GetAvailableBreak
+        //[Authorize(Roles = "EMPLOYEE")]
+        //[HttpPost]
+        //public HttpResponseMessage GetAvailableBreak(GetModels obj)
+        //{
+        //    Thread.CurrentPrincipal = HttpContext.Current.User;
+        //    HttpResponseMessage response = null;
+        //    if (ModelState.IsValid)
+        //    {
+        //        try
+        //        {
+        //            var result = Task.FromResult(_dapper.GetAll<BreakMaster>(
+        //                "SELECT * FROM BreakMaster B WITH(NOLOCK) " +
+        //                "WHERE B.OrganizationId = @OrganizationId " +
+        //                "AND B.Active = 1 " +
+        //                "AND B.Id NOT IN (SELECT DISTINCT BE.Id " +
+        //                "FROM BreakEntry BE " +
+        //                "WHERE CAST(BE.Start_Time AS DATE) = @CDate " +
+        //                "AND BE.UserId = @UserId " +
+        //                "AND BE.OrganizationId = @OrganizationId)"
+        //            , new
+        //            {
+        //                OrganizationId = obj.OrganizationId,
+        //                CDate = obj.CDate,
+        //                UserId = obj.UserId
+        //            }).ToList());
+
+        //            if (result.IsCompleted)
+        //            {
+        //                if (result.Result.Count != 0)
+        //                {
+        //                    response = Request.CreateResponse(HttpStatusCode.OK, result.Result);
+        //                }
+        //                else
+        //                {
+        //                    response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "No Data Found");
+        //                }
+        //            }
+        //            else
+        //            {
+        //                response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "Error");
+        //            }
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            _logErrors.Writelog(ex, "Users", "GetAvailableBreak");
+        //            response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex);
+        //        }
+        //    }
+        //    else
+        //    {
+        //        _logErrors.WriteDirectLog("Users", "GetAvailableBreak" + "Model State is Not Valid");
+        //        response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Model State is Not Valid");
+        //    }
+        //    return response;
+        //}
         #endregion
 
 
