@@ -541,9 +541,9 @@ namespace EMP.Controllers
 
                 var query = @"
                              SELECT 
-                                U.First_Name,
+                                U.First_Name as FirstName,
                                 U.Email,
-                                BM.Name,
+                                BM.Name as BreakType,
                                 BE.Start_Time,
                                 BE.End_Time,
                                 BE.Status,
