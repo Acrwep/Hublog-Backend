@@ -521,6 +521,70 @@ namespace EMP.Controllers
         }
         #endregion
 
+        #region GetUserBreakRecordDetails
+        [HttpGet]
+        public HttpResponseMessage GetUserBreakRecordDetails([FromUri] int userId, [FromUri] DateTime? startDate = null, [FromUri] DateTime? endDate = null)
+        {
+            HttpResponseMessage response = null;
+            try
+            {
+                if (!startDate.HasValue || !endDate.HasValue)
+                {
+                    DateTime today = DateTime.Today;
+                    int diff = today.DayOfWeek - DayOfWeek.Monday;
+                    DateTime startOfWeek = today.AddDays(-diff).Date;
+                    DateTime endOfWeek = startOfWeek.AddDays(6);
+
+                    startDate = startOfWeek;
+                    endDate = endOfWeek;
+                }
+
+                var query = @"
+                             SELECT 
+                                U.First_Name,
+                                U.Email,
+                                BM.Name,
+                                BE.Start_Time,
+                                BE.End_Time,
+                                BE.Status,
+                                A.AttendanceDate
+                             FROM Users U
+                                INNER JOIN Attendance A ON U.Id = A.UserId
+                                INNER JOIN BreakMaster BM ON U.OrganizationId = BM.OrganizationId
+                                INNER JOIN BreakEntry BE ON BM.OrganizationId = BE.OrganizationId
+                             WHERE U.Id = @UserId
+                                AND A.AttendanceDate BETWEEN @StartDate AND @EndDate
+                             ";
+
+                var parameters = new { UserId = userId, StartDate = startDate.Value, EndDate = endDate.Value };
+                var result = Task.FromResult(_dapper.GetAll<UserBreakRecordModel>(query, parameters).ToList());
+
+                if(result.IsCompleted)
+                {
+                    if(result.Result.Count != 0)
+                    {
+                        response = Request.CreateResponse(HttpStatusCode.OK, result.Result);
+                    }
+                    else
+                    {
+                        response = Request.CreateResponse(HttpStatusCode.NotFound, "No Data Found");
+                    }
+                }
+                else
+                {
+                    response = Request.CreateResponse(HttpStatusCode.NotFound, "Error");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logErrors.Writelog(ex, "Users", "GetUserAttendanceDetails");
+                response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex.Message);
+            }
+
+            return response;
+        }
+        #endregion
+
         [HttpGet]
         public HttpResponseMessage GetUsersByOrganizationId([FromUri] int OrganizationId)
         {

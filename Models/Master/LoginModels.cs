@@ -214,7 +214,6 @@ namespace EMP.Models.Master
         public string workplace { get; set; }
         public string att_status { get; set; }
     }
-
     public class UserAttendanceDetailModel
     {
         public string FirstName { get; set; }
@@ -228,7 +227,6 @@ namespace EMP.Models.Master
         public DateTime Late_Time { get; set; }
         public int Status { get; set; }
     }
-
     public class AttendanceRecord
     {
         public string First_Name { get; set; }
@@ -241,5 +239,14 @@ namespace EMP.Models.Master
         public DateTime Total_Time { get; set; }
         public DateTime Late_Time { get; set; }
         public string Status { get; set; }
+    }
+    public class  UserBreakRecordModel
+    {
+        public string FirstName { get; set; }
+        public string Email { get; set; }
+        public string BreakType { get; set; }
+        public DateTime Start_Time { get; set; }
+        public DateTime End_Time { get; set; }
+        public DateTime AttendanceDate { get; set; }    
     }
 }
