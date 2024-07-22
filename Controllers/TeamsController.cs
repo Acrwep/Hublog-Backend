@@ -12,7 +12,7 @@ using Dapper;
 
 namespace EMP.Controllers
 {
-    //[Authorize(Roles = "SUPER_ADMIN,ADMIN,USERS,EMPLOYEE")]
+    [Authorize(Roles = "SUPER_ADMIN,ADMIN,USERS,EMPLOYEE")]
     public class TeamController : ApiController
     {
         private readonly Dapperr _dapper = new Dapperr();

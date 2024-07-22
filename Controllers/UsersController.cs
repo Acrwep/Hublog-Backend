@@ -29,7 +29,7 @@ namespace EMP.Controllers
 
         // Ensure this is imported for SQL Server usage
 
-        //[Authorize(Roles = "EMPLOYEE")]
+        [Authorize(Roles = "EMPLOYEE")]
         [HttpPost]
         public async Task<IHttpActionResult> InsertAttendance(List<UserAttendanceModel> model)
         {
@@ -58,7 +58,7 @@ namespace EMP.Controllers
 
                     if (result <= 0)
                     {
-                       // return NotFound(new { Message = "Error: Insertion failed for UserId " + attendanceModel.UserId });
+                        // return NotFound(new { Message = "Error: Insertion failed for UserId " + attendanceModel.UserId });
 
 
                     }
@@ -401,6 +401,126 @@ namespace EMP.Controllers
             return response;
         }
 
+        #region GetUserAttendanceDetails
+        //[HttpGet]
+        //public HttpResponseMessage GetUserAttendanceDetails([FromUri] int userId)
+        //{
+        //    HttpResponseMessage response = null;
+        //    try
+        //    {
+        //        var query = @"
+        //                    SELECT 
+        //                        U.First_Name AS FirstName, 
+        //                        U.Email, 
+        //                        U.EmployeeID AS EmployeeId, 
+        //                        U.Active, 
+        //                        A.AttendanceDate, 
+        //                        A.Start_Time, 
+        //                        A.End_Time, 
+        //                        A.Total_Time, 
+        //                        A.Late_Time, 
+        //                        A.Status 
+        //                    FROM Users U
+        //                        INNER JOIN Attendance A ON U.Id = A.UserId
+        //                        WHERE U.Id = @UserId";
+
+        //        var parameters = new { UserId = userId };
+
+        //        var result = Task.FromResult(_dapper.GetAll<UserAttendanceDetailModel>(query, parameters).ToList());
+
+        //        if (result.IsCompleted)
+        //        {
+        //            if (result.Result.Count != 0)
+        //            {
+        //                response = Request.CreateResponse(HttpStatusCode.OK, result.Result);
+        //            }
+        //            else
+        //            {
+        //                response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "No Data Found");
+        //            }
+        //        }
+        //        else
+        //        {
+        //            response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "Error");
+        //        }
+        //    }
+
+        //    catch (Exception ex)
+        //    {
+        //        _logErrors.Writelog(ex, "Users", "GetAllUsers");
+        //        response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex.Message);
+        //    }
+
+        //    return response;
+        //}
+        #endregion
+
+        #region GetUserAttendanceDetails
+        [HttpGet]
+        public HttpResponseMessage GetUserAttendanceDetails([FromUri] int userId, [FromUri] DateTime? startDate = null, [FromUri] DateTime? endDate = null)
+        {
+            HttpResponseMessage response = null;
+            try
+            {
+                // Current week if dates not given
+                if (!startDate.HasValue || !endDate.HasValue)
+                {
+                    DateTime today = DateTime.Today;
+                    int diff = today.DayOfWeek - DayOfWeek.Monday;
+                    DateTime startOfWeek = today.AddDays(-diff).Date;  
+                    DateTime endOfWeek = startOfWeek.AddDays(6);  
+
+                    startDate = startOfWeek;
+                    endDate = endOfWeek;
+                }
+
+                var query = @"
+                    SELECT 
+                        U.First_Name AS FirstName, 
+                        U.Email, 
+                        U.EmployeeID AS EmployeeId, 
+                        U.Active, 
+                        A.AttendanceDate, 
+                        A.Start_Time, 
+                        A.End_Time, 
+                        A.Total_Time, 
+                        A.Late_Time, 
+                        A.Status 
+                    FROM Users U
+                        INNER JOIN Attendance A ON U.Id = A.UserId
+                        WHERE U.Id = @UserId
+                          AND A.AttendanceDate BETWEEN @StartDate AND @EndDate";
+
+                var parameters = new { UserId = userId, StartDate = startDate.Value, EndDate = endDate.Value };
+
+                var result = Task.FromResult(_dapper.GetAll<UserAttendanceDetailModel>(query, parameters).ToList());
+
+                if (result.IsCompleted)
+                {
+                    if (result.Result.Count != 0)
+                    {
+                        response = Request.CreateResponse(HttpStatusCode.OK, result.Result);
+                    }
+                    else
+                    {
+                        response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "No Data Found");
+                    }
+                }
+                else
+                {
+                    response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "Error");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logErrors.Writelog(ex, "Users", "GetUserAttendanceDetails");
+                response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex.Message);
+            }
+
+            return response;
+        }
+        #endregion
+
         [HttpGet]
         public HttpResponseMessage GetUsersByOrganizationId([FromUri] int OrganizationId)
         {
@@ -519,7 +639,6 @@ Gender, OrganizationId, RoleId, DesignationId, TeamId, Active, EmployeeID)
             return response;
         }
 
-
         [HttpDelete]
         public async Task<HttpResponseMessage> DeleteUser(int id)
         {
@@ -548,6 +667,6 @@ Gender, OrganizationId, RoleId, DesignationId, TeamId, Active, EmployeeID)
 
             return response;
         }
-    
-}
+
+    }
 }

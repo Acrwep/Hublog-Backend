@@ -11,7 +11,6 @@ namespace EMP.Models.Master
 
         public string Password { get; set; }
     }
-
     public class GetModels
     {
         public int OrganizationId { get; set; }
@@ -46,7 +45,6 @@ namespace EMP.Models.Master
         public string EmployeeID { get; set; } //(varchar(100), null)
 
     }
-
     public class Designation
     {
         public int Id { get; set; } //(int, not null)
@@ -56,7 +54,6 @@ namespace EMP.Models.Master
         public DateTime Created_date { get; set; } //(datetime, not null)
         public int OrganizationId { get; set; } //(int, not null)
     }
-
     public class BreakMaster
     {
         public int Id { get; set; } //(int, not null)
@@ -74,7 +71,6 @@ namespace EMP.Models.Master
         public int OrganizationId { get; set; } //(int, not null)
         public Nullable<int> Parentid { get; set; } //(int, null)
     }
-
     public class Role
     {
         public int Id { get; set; } //(int, not null)
@@ -87,7 +83,6 @@ namespace EMP.Models.Master
         public bool LiveStream { get; set; } //(bit, not null)
         public int OrganizationId { get; set; } //(int, not null)
     }
-
     public class RoleModel
     {
         public string Name { get; set; }
@@ -104,8 +99,6 @@ namespace EMP.Models.Master
         public Int32 Id { get; set; }
 
     }
-
-
     public class UserAttendanceModel
     {
         public int OrganizationId { get; set; } //(int, not null)
@@ -133,7 +126,6 @@ namespace EMP.Models.Master
         public Nullable<DateTime> End_Time { get; set; } //(datetime, not null)
         public int Status { get; set; } //(int, not null)
     }
-
     public class UserScreenShotModel
     {
         public int OrganizationId { get; set; } //(int, not null)
@@ -148,9 +140,6 @@ namespace EMP.Models.Master
         public string FileName { get; set; } //(datetime, not null)
         public string FilePath { get; set; } //(datetime, not null)
     }
-
-
-
     public class GetAttendanceModel
     {
         public int OrganizationId { get; set; } //(int, not null)
@@ -161,7 +150,6 @@ namespace EMP.Models.Master
         public DateTime ToDate { get; set; } //(datetime, not null)
         public int Type { get; set; } //(int, not null)
     }
-
     public class ViewAttendanceModel
     {
         public decimal AttendancePer { get; set; } //(int, not null)
@@ -182,7 +170,6 @@ namespace EMP.Models.Master
         public List<Latechatmodel> Latechat { get; set; } //(int, not null)
         public List<Breakchatmodel> Breakchat { get; set; } //(int, not null)
     }
-
     public class Attendancechatmodel
     {
         public DateTime Date { get; set; } //(datetime, not null)
@@ -209,7 +196,6 @@ namespace EMP.Models.Master
         public int Present { get; set; } //(int, not null)
         public int Absent { get; set; } //(int, not null)
     }
-
     public class ResponseViewModel
     {
         public bool status { get; set; }
@@ -219,7 +205,6 @@ namespace EMP.Models.Master
         public object data { get; set; }
         public int optional { get; set; }
     }
-
     public class MontinoutModel
     {
         public string date { get; set; }
@@ -228,5 +213,33 @@ namespace EMP.Models.Master
         public string punch_duration { get; set; }
         public string workplace { get; set; }
         public string att_status { get; set; }
+    }
+
+    public class UserAttendanceDetailModel
+    {
+        public string FirstName { get; set; }
+        public string Email { get; set; }
+        public string EmployeeId { get; set; }
+        public bool Active { get; set; }
+        public DateTime AttendanceDate { get; set; }
+        public DateTime Start_Time { get; set; }
+        public DateTime End_Time { get; set; }
+        public DateTime Total_Time { get; set; }
+        public DateTime Late_Time { get; set; }
+        public int Status { get; set; }
+    }
+
+    public class AttendanceRecord
+    {
+        public string First_Name { get; set; }
+        public string Email { get; set; }
+        public string EmployeeID { get; set; }
+        public bool Active { get; set; }
+        public DateTime AttendanceDate { get; set; }
+        public DateTime Start_Time { get; set; }
+        public DateTime End_Time { get; set; }
+        public DateTime Total_Time { get; set; }
+        public DateTime Late_Time { get; set; }
+        public string Status { get; set; }
     }
 }
