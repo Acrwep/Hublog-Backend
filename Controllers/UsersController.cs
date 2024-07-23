@@ -116,6 +116,54 @@ namespace EMP.Controllers
         //    return response;
         //}
 
+        #region Old InsertBreak
+        //[Authorize(Roles = "EMPLOYEE")]
+        //[HttpPost]
+        //public HttpResponseMessage InsertBreak(List<UserBreakModel> model)
+        //{
+        //    Thread.CurrentPrincipal = HttpContext.Current.User;
+        //    HttpResponseMessage response = null;
+        //    if (ModelState.IsValid)
+        //    {
+        //        try
+        //        {
+        //            string details = JsonConvert.SerializeObject(model);
+        //            details = details.Replace("\"null\"", "\"\"");
+        //            details = details.Replace("null", "\"\"");
+        //            details = details.Replace("'", "");
+        //            var result = Task.FromResult(_dapper.Get<ResultModel>("Exec [SP_BreakEntry] '" + details + "'"));
+        //            if (result.IsCompleted)
+        //            {
+        //                if (result.Result.Result == 1)
+        //                {
+        //                    response = Request.CreateResponse(HttpStatusCode.OK, "InsertBreak" + Message.CreateSuccess);
+        //                }
+        //                else
+        //                {
+        //                    response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "Error" + result.Result.Msg);
+        //                }
+        //            }
+        //            else
+        //            {
+        //                response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "Error" + result.Result.Msg);
+        //            }
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            _logErrors.Writelog(ex, "Users", "InsertBreak");
+        //            response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex);
+        //        }
+        //    }
+        //    else
+        //    {
+        //        _logErrors.WriteDirectLog("InsertAttendance", "UserLogin" + "Model State is Not Valid");
+        //        response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Model State is Not Valid");
+        //    }
+        //    return response;
+        //}
+        #endregion
+
+        #region new insertbreak
         [Authorize(Roles = "EMPLOYEE")]
         [HttpPost]
         public HttpResponseMessage InsertBreak(List<UserBreakModel> model)
@@ -161,6 +209,7 @@ namespace EMP.Controllers
             return response;
         }
 
+        #endregion
 
         [Authorize(Roles = "SUPER_ADMIN,ADMIN,USERS,EMPLOYEE")]
         [HttpPost]
@@ -525,6 +574,70 @@ namespace EMP.Controllers
         }
         #endregion
 
+        #region   OLD GetUserBreakRecordDetails
+        //[HttpGet]
+        //public HttpResponseMessage GetUserBreakRecordDetails([FromUri] int userId, [FromUri] DateTime? startDate = null, [FromUri] DateTime? endDate = null)
+        //{
+        //    HttpResponseMessage response = null;
+        //    try
+        //    {
+        //        if (!startDate.HasValue || !endDate.HasValue)
+        //        {
+        //            DateTime today = DateTime.Today;
+        //            int diff = today.DayOfWeek - DayOfWeek.Monday;
+        //            DateTime startOfWeek = today.AddDays(-diff).Date;
+        //            DateTime endOfWeek = startOfWeek.AddDays(6);
+
+        //            startDate = startOfWeek;
+        //            endDate = endOfWeek;
+        //        }
+
+        //        var query = @"
+        //                     SELECT 
+        //                        U.First_Name as FirstName,
+        //                        U.Email,
+        //                        BM.Name as BreakType,
+        //                        BE.Start_Time,
+        //                        BE.End_Time,
+        //                        BE.Status,
+        //                        A.AttendanceDate
+        //                     FROM Users U
+        //                        INNER JOIN Attendance A ON U.Id = A.UserId
+        //                        INNER JOIN BreakMaster BM ON U.OrganizationId = BM.OrganizationId
+        //                        INNER JOIN BreakEntry BE ON BM.OrganizationId = BE.OrganizationId
+        //                     WHERE U.Id = @UserId
+        //                        AND A.AttendanceDate BETWEEN @StartDate AND @EndDate
+        //                     ";
+
+        //        var parameters = new { UserId = userId, StartDate = startDate.Value, EndDate = endDate.Value };
+        //        var result = Task.FromResult(_dapper.GetAll<UserBreakRecordModel>(query, parameters).ToList());
+
+        //        if (result.IsCompleted)
+        //        {
+        //            if (result.Result.Count != 0)
+        //            {
+        //                response = Request.CreateResponse(HttpStatusCode.OK, result.Result);
+        //            }
+        //            else
+        //            {
+        //                response = Request.CreateResponse(HttpStatusCode.NotFound, "No Data Found");
+        //            }
+        //        }
+        //        else
+        //        {
+        //            response = Request.CreateResponse(HttpStatusCode.NotFound, "Error");
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logErrors.Writelog(ex, "Users", "GetUserAttendanceDetails");
+        //        response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex.Message);
+        //    }
+
+        //    return response;
+        //}
+        #endregion
+
         #region GetUserBreakRecordDetails
         [HttpGet]
         public HttpResponseMessage GetUserBreakRecordDetails([FromUri] int userId, [FromUri] DateTime? startDate = null, [FromUri] DateTime? endDate = null)
@@ -543,29 +656,33 @@ namespace EMP.Controllers
                     endDate = endOfWeek;
                 }
 
-                var query = @"
-                             SELECT 
-                                U.First_Name as FirstName,
-                                U.Email,
-                                BM.Name as BreakType,
-                                BE.Start_Time,
-                                BE.End_Time,
-                                BE.Status,
-                                A.AttendanceDate
-                             FROM Users U
-                                INNER JOIN Attendance A ON U.Id = A.UserId
-                                INNER JOIN BreakMaster BM ON U.OrganizationId = BM.OrganizationId
-                                INNER JOIN BreakEntry BE ON BM.OrganizationId = BE.OrganizationId
-                             WHERE U.Id = @UserId
-                                AND A.AttendanceDate BETWEEN @StartDate AND @EndDate
-                             ";
+                // Convert EndDate to include the entire day
+                DateTime endDateTime = endDate.Value.Date.AddDays(1);
 
-                var parameters = new { UserId = userId, StartDate = startDate.Value, EndDate = endDate.Value };
+                var query = @"
+                     SELECT 
+                        U.First_Name as FirstName,
+                        U.Email,
+                        BM.Name as BreakType,
+                        BE.Start_Time,
+                        BE.End_Time,
+                        BE.Status
+                     FROM Users U
+                        INNER JOIN BreakMaster BM ON U.OrganizationId = BM.OrganizationId
+                        INNER JOIN BreakEntry BE ON BM.OrganizationId = BE.OrganizationId
+                     WHERE U.Id = @UserId
+                        AND (
+                            BE.Start_Time < @EndDateTime
+                            AND BE.End_Time >= @StartDate
+                        )
+                     ";
+
+                var parameters = new { UserId = userId, StartDate = startDate.Value, EndDateTime = endDateTime };
                 var result = Task.FromResult(_dapper.GetAll<UserBreakRecordModel>(query, parameters).ToList());
 
-                if(result.IsCompleted)
+                if (result.IsCompleted)
                 {
-                    if(result.Result.Count != 0)
+                    if (result.Result.Count != 0)
                     {
                         response = Request.CreateResponse(HttpStatusCode.OK, result.Result);
                     }
@@ -581,13 +698,14 @@ namespace EMP.Controllers
             }
             catch (Exception ex)
             {
-                _logErrors.Writelog(ex, "Users", "GetUserAttendanceDetails");
+                _logErrors.Writelog(ex, "Users", "GetUserBreakRecordDetails");
                 response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex.Message);
             }
 
             return response;
         }
         #endregion
+
 
         [HttpGet]
         public HttpResponseMessage GetUsersByOrganizationId([FromUri] int OrganizationId)
