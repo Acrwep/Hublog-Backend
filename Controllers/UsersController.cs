@@ -508,7 +508,8 @@ namespace EMP.Controllers
                     }
                     else
                     {
-                        response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "No Data Found");
+                        //response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "No Data Found");
+                        response = Request.CreateResponse(HttpStatusCode.OK, (List<UserAttendanceDetailModel>)null);
                     }
                 }
                 else
