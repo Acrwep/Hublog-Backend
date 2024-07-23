@@ -59,8 +59,6 @@ namespace EMP.Controllers
                     if (result <= 0)
                     {
                         // return NotFound(new { Message = "Error: Insertion failed for UserId " + attendanceModel.UserId });
-
-
                     }
                 }
 
@@ -406,7 +404,7 @@ namespace EMP.Controllers
             return response;
         }
 
-        #region GetUserAttendanceDetails
+        #region  Old GetUserAttendanceDetails
         //[HttpGet]
         //public HttpResponseMessage GetUserAttendanceDetails([FromUri] int userId)
         //{
@@ -509,7 +507,7 @@ namespace EMP.Controllers
                     else
                     {
                         //response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "No Data Found");
-                        response = Request.CreateResponse(HttpStatusCode.OK, (List<UserAttendanceDetailModel>)null);
+                        response = Request.CreateResponse(HttpStatusCode.OK, new List<UserAttendanceDetailModel>());
                     }
                 }
                 else
