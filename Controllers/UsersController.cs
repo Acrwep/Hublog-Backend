@@ -13,6 +13,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Http;
+using System.Configuration;
+
 
 using EMP.Models; // Adjust the namespace as per your project structure
 
@@ -211,6 +213,122 @@ namespace EMP.Controllers
 
 
         #endregion
+        private string GetConnectionString()
+        {
+            return ConfigurationManager.ConnectionStrings["EMBContext"].ConnectionString;
+        }
+
+
+        #region  commented Old UploadFile
+        //[Authorize(Roles = "SUPER_ADMIN,ADMIN,USERS,EMPLOYEE")]
+        //[HttpPost]
+        //public HttpResponseMessage UploadFile()
+        //{
+        //    Int32 UId = 0;
+        //    Int32 OId = 0;
+        //    string SType = "";
+        //    string SDate = "";
+        //    try
+        //    {
+        //        UId = Convert.ToInt32(Request.Headers.GetValues("UId").First());
+        //    }
+        //    catch
+        //    {
+
+        //    }
+        //    try
+        //    {
+        //        OId = Convert.ToInt32(Request.Headers.GetValues("OId").First());
+        //    }
+        //    catch
+        //    {
+
+        //    }
+        //    try
+        //    {
+        //        SType = Request.Headers.GetValues("SType").First();
+        //    }
+        //    catch
+        //    {
+
+        //    }
+        //    try
+        //    {
+        //        SDate = Request.Headers.GetValues("SDate").First();
+        //    }
+        //    catch
+        //    {
+
+        //    }
+        //    try
+        //    {
+        //        string path = string.Empty;
+        //        string _imgname = "";
+        //        if (System.Web.HttpContext.Current.Request.Files.AllKeys.Any())
+        //        {
+        //            var pic = System.Web.HttpContext.Current.Request.Files["MyImages"];
+        //            if (pic.ContentLength > 0)
+        //            {
+        //                var fileName = Path.GetFileName(pic.FileName);
+        //                var _ext = Path.GetExtension(pic.FileName);
+        //                if (SType == "ScreenShots")
+        //                {
+        //                    _imgname = fileName.Replace(_ext, "");
+        //                }
+        //                else
+        //                {
+        //                    _imgname = Guid.NewGuid().ToString();
+        //                }
+        //                //string path1 = System.Web.HttpContext.Current.Request.Url.GetLeftPart(UriPartial.Authority);
+        //                string path1 = System.Web.Hosting.HostingEnvironment.MapPath("~/ScreenShots/" + OId + "/" + UId + "/");
+        //                if (!(Directory.Exists(path1)))
+        //                {
+        //                    Directory.CreateDirectory(path1);
+        //                }
+        //                var _comPath = HttpContext.Current.Server.MapPath("/ScreenShots/" + OId + "/" + UId + "/") + _imgname + _ext;
+        //                _imgname = _imgname + _ext;
+        //                path = System.Web.HttpContext.Current.Request.Url.GetLeftPart(UriPartial.Authority) + ("/ScreenShots/" + OId + "/" + UId + "/") + _imgname;
+        //                Stream strm = pic.InputStream;
+        //                objfun.Compressimage(strm, _comPath, pic.FileName);
+        //                if (SType == "ScreenShots")
+        //                {
+        //                    List<UserScreenShotModel> obj = new List<UserScreenShotModel>();
+        //                    obj.Add(new UserScreenShotModel()
+        //                    {
+        //                        UserId = UId,
+        //                        OrganizationId = OId,
+        //                        ScreenShotDate = SDate,
+        //                        FileName = _imgname,
+        //                        FilePath = path,
+        //                    }); ;
+        //                    string details = JsonConvert.SerializeObject(obj);
+        //                    details = details.Replace("\"null\"", "\"\"");
+        //                    details = details.Replace("null", "\"\"");
+        //                    details = details.Replace("'", "");
+        //                    _logErrors.WriteDirectLog("Users", "Exec [SP_ScreenShot]" + details);
+        //                    var result = Task.FromResult(_dapper.Get<ResultModel>("Exec [SP_ScreenShot] '" + details + "'"));
+        //                    if (result.IsCompleted)
+        //                    {
+        //                        //_logErrors.WriteDirectLog("Users", "UploadFile" + result.Result.Msg);
+        //                    }
+        //                    else
+        //                    {
+        //                        _logErrors.WriteDirectLog("Users", "UploadFile" + result.Result.Msg);
+        //                    }
+        //                }
+        //            }
+        //        }
+        //        return Request.CreateResponse(HttpStatusCode.OK, path);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logErrors.Writelog(ex, "User", "UploadFile");
+        //        return Request.CreateResponse(HttpStatusCode.NotFound, ex.InnerException != null ? ex.InnerException.Message : ex.Message);
+        //    }
+
+        //}
+        #endregion
+
 
         [Authorize(Roles = "SUPER_ADMIN,ADMIN,USERS,EMPLOYEE")]
         [HttpPost]
@@ -220,107 +338,94 @@ namespace EMP.Controllers
             Int32 OId = 0;
             string SType = "";
             string SDate = "";
+
             try
             {
                 UId = Convert.ToInt32(Request.Headers.GetValues("UId").First());
-            }
-            catch
-            {
-
-            }
-            try
-            {
                 OId = Convert.ToInt32(Request.Headers.GetValues("OId").First());
-            }
-            catch
-            {
-
-            }
-            try
-            {
                 SType = Request.Headers.GetValues("SType").First();
-            }
-            catch
-            {
-
-            }
-            try
-            {
                 SDate = Request.Headers.GetValues("SDate").First();
             }
-            catch
+            catch (Exception ex)
             {
-
+                return Request.CreateResponse(HttpStatusCode.BadRequest, $"Header parsing error: {ex.Message}");
             }
+
             try
             {
-                string path = string.Empty;
-                string _imgname = "";
                 if (System.Web.HttpContext.Current.Request.Files.AllKeys.Any())
                 {
                     var pic = System.Web.HttpContext.Current.Request.Files["MyImages"];
-                    if (pic.ContentLength > 0)
+                    if (pic != null && pic.ContentLength > 0)
                     {
                         var fileName = Path.GetFileName(pic.FileName);
-                        var _ext = Path.GetExtension(pic.FileName);
-                        if (SType == "ScreenShots")
+                        var fileExtension = Path.GetExtension(fileName);
+                        var imageName = (SType == "ScreenShots") ? fileName.Replace(fileExtension, "") : Guid.NewGuid().ToString();
+                        var newFileName = imageName + fileExtension;
+
+                        // Define the path to save the file
+                        string folderPath = System.Web.Hosting.HostingEnvironment.MapPath("~/ScreenShots/");
+                        if (!Directory.Exists(folderPath))
                         {
-                            _imgname = fileName.Replace(_ext, "");
+                            Directory.CreateDirectory(folderPath);
                         }
-                        else
+
+                        var completeFilePath = Path.Combine(folderPath, newFileName);
+
+                        // Save the file locally
+                        pic.SaveAs(completeFilePath);
+
+                        // Read the image data
+                        byte[] imageData;
+                        using (var ms = new MemoryStream())
                         {
-                            _imgname = Guid.NewGuid().ToString();
+                            pic.InputStream.CopyTo(ms);
+                            imageData = ms.ToArray();
                         }
-                        //string path1 = System.Web.HttpContext.Current.Request.Url.GetLeftPart(UriPartial.Authority);
-                        string path1 = System.Web.Hosting.HostingEnvironment.MapPath("~/ScreenShots/" + OId + "/" + UId + "/");
-                        if (!(Directory.Exists(path1)))
+
+                        if (imageData.Length == 0)
                         {
-                            Directory.CreateDirectory(path1);
+                            return Request.CreateResponse(HttpStatusCode.BadRequest, "Image data is empty.");
                         }
-                        var _comPath = HttpContext.Current.Server.MapPath("/ScreenShots/" + OId + "/" + UId + "/") + _imgname + _ext;
-                        _imgname = _imgname + _ext;
-                        path = System.Web.HttpContext.Current.Request.Url.GetLeftPart(UriPartial.Authority) + ("/ScreenShots/" + OId + "/" + UId + "/") + _imgname;
-                        Stream strm = pic.InputStream;
-                        objfun.Compressimage(strm, _comPath, pic.FileName);
-                        if (SType == "ScreenShots")
+
+                        // Prepare parameters for stored procedure
+                        var parameters = new DynamicParameters();
+                        parameters.Add("@UserId", UId);
+                        parameters.Add("@OrganizationId", OId);
+                        parameters.Add("@ScreenShotDate", SDate);
+                        parameters.Add("@FileName", newFileName);
+                        parameters.Add("@FilePath", completeFilePath);
+                        parameters.Add("@ImageData", imageData);
+
+                        // Execute the stored procedure
+                        string connectionString = GetConnectionString();
+                        using (var connection = new SqlConnection(connectionString))
                         {
-                            List<UserScreenShotModel> obj = new List<UserScreenShotModel>();
-                            obj.Add(new UserScreenShotModel()
-                            {
-                                UserId = UId,
-                                OrganizationId = OId,
-                                ScreenShotDate = SDate,
-                                FileName = _imgname,
-                                FilePath = path,
-                            }); ;
-                            string details = JsonConvert.SerializeObject(obj);
-                            details = details.Replace("\"null\"", "\"\"");
-                            details = details.Replace("null", "\"\"");
-                            details = details.Replace("'", "");
-                            _logErrors.WriteDirectLog("Users", "Exec [SP_ScreenShot]" + details);
-                            var result = Task.FromResult(_dapper.Get<ResultModel>("Exec [SP_ScreenShot] '" + details + "'"));
-                            if (result.IsCompleted)
-                            {
-                                //_logErrors.WriteDirectLog("Users", "UploadFile" + result.Result.Msg);
-                            }
-                            else
-                            {
-                                _logErrors.WriteDirectLog("Users", "UploadFile" + result.Result.Msg);
-                            }
+                            connection.Open();
+                            connection.Execute("SP_InsertScreenShot", parameters, commandType: CommandType.StoredProcedure);
                         }
+
+                        return Request.CreateResponse(HttpStatusCode.OK, completeFilePath);
+                    }
+                    else
+                    {
+                        return Request.CreateResponse(HttpStatusCode.BadRequest, "No file uploaded.");
                     }
                 }
-                return Request.CreateResponse(HttpStatusCode.OK, path);
+                else
+                {
+                    return Request.CreateResponse(HttpStatusCode.BadRequest, "No files found.");
+                }
             }
             catch (Exception ex)
             {
                 _logErrors.Writelog(ex, "User", "UploadFile");
-                return Request.CreateResponse(HttpStatusCode.NotFound, ex.InnerException != null ? ex.InnerException.Message : ex.Message);
+                return Request.CreateResponse(HttpStatusCode.InternalServerError, ex.Message);
             }
-
         }
 
-        #region commented old GetAvailableBreak
+
+        #region GetAvailableBreak
         [Authorize(Roles = "EMPLOYEE")]
         [HttpPost]
         public HttpResponseMessage GetAvailableBreak(GetModels obj)
@@ -368,7 +473,7 @@ namespace EMP.Controllers
         }
         #endregion
 
-        #region New GetAvailableBreak
+        #region  commented GetAvailableBreak
         //[Authorize(Roles = "EMPLOYEE")]
         //[HttpPost]
         //public HttpResponseMessage GetAvailableBreak(GetModels obj)
@@ -454,7 +559,7 @@ namespace EMP.Controllers
             return response;
         }
 
-        #region  Old GetUserAttendanceDetails
+        #region commented Old GetUserAttendanceDetails
         //[HttpGet]
         //public HttpResponseMessage GetUserAttendanceDetails([FromUri] int userId)
         //{
@@ -575,7 +680,7 @@ namespace EMP.Controllers
         }
         #endregion
 
-        #region   OLD GetUserBreakRecordDetails
+        #region commented  OLD GetUserBreakRecordDetails
         //[HttpGet]
         //public HttpResponseMessage GetUserBreakRecordDetails([FromUri] int userId, [FromUri] DateTime? startDate = null, [FromUri] DateTime? endDate = null)
         //{

@@ -83,9 +83,10 @@ namespace EMP.Controllers
             }
             return null;
         }
+
+        #region old Compressimage
         public void Compressimage(Stream sourcePath, string targetPath, String filename)
         {
-            //https://www.c-sharpcorner.com/UploadFile/85ed7a/compress-and-resize-the-image-using-web-api/
 
             try
             {
@@ -162,5 +163,8 @@ namespace EMP.Controllers
 
             }
         }
+        #endregion
+
+
     }
 }
