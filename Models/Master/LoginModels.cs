@@ -261,5 +261,17 @@ namespace EMP.Models.Master
         public byte[] ImageData { get; set; }
     }
 
+    public class AttendanceSummaryModel
+    {
+        public int DaysPresent { get; set; }
+        public int DaysLeave { get; set; }
+    }
+
+    //public class AttendanceDetailModel
+    //{
+    //    public DateTime AttendanceDate { get; set; }
+    //    public DateTime? Start_Time { get; set; }
+    //    public DateTime? End_Time { get; set; }
+    //}
 
 }

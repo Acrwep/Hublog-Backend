@@ -49,6 +49,7 @@ namespace EMP.Controllers
 
             return response;
         }
+
         [Authorize(Roles = "SUPER_ADMIN,ADMIN,USERS,EMPLOYEE")]
         [Authorize]
         [HttpGet]

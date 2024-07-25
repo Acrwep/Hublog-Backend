@@ -29,6 +29,11 @@ namespace EMP.Controllers
         private readonly LogErrors _logErrors = new LogErrors();
         CommonFunctiton objfun = new CommonFunctiton();
 
+        private string GetConnectionString()
+        {
+            return ConfigurationManager.ConnectionStrings["EMBContext"].ConnectionString;
+        }
+
         #region NEW InsertAttendance
         [Authorize(Roles = "EMPLOYEE")]
         [HttpPost]
@@ -224,7 +229,6 @@ namespace EMP.Controllers
             HttpResponseMessage response = null;
             try
             {
-                // Current week if dates not given
                 if (!startDate.HasValue || !endDate.HasValue)
                 {
                     DateTime today = DateTime.Today;
@@ -236,38 +240,67 @@ namespace EMP.Controllers
                     endDate = endOfWeek;
                 }
 
-                var query = @"
-                    SELECT 
-                        U.First_Name AS FirstName, 
-                        U.Email, 
-                        U.EmployeeID AS EmployeeId, 
-                        U.Active, 
-                        A.AttendanceDate, 
-                        A.Start_Time, 
-                        A.End_Time, 
-                        A.Total_Time, 
-                        A.Late_Time, 
-                        A.Status 
-                    FROM Users U
-                        INNER JOIN Attendance A ON U.Id = A.UserId
-                        WHERE U.Id = @UserId
-                          AND A.AttendanceDate BETWEEN @StartDate AND @EndDate";
+                var queryAttendance = @"
+            SELECT 
+                U.First_Name AS FirstName, 
+                U.Email, 
+                U.EmployeeID AS EmployeeId, 
+                U.Active, 
+                A.AttendanceDate, 
+                A.Start_Time, 
+                A.End_Time, 
+                A.Total_Time, 
+                A.Late_Time, 
+                A.Status 
+            FROM Users U
+                INNER JOIN Attendance A ON U.Id = A.UserId
+                WHERE U.Id = @UserId
+                  AND A.AttendanceDate BETWEEN @StartDate AND @EndDate";
 
                 var parameters = new { UserId = userId, StartDate = startDate.Value, EndDate = endDate.Value };
 
-                var result = Task.FromResult(_dapper.GetAll<UserAttendanceDetailModel>(query, parameters).ToList());
+                var attendanceRecords = Task.FromResult(_dapper.GetAll<UserAttendanceDetailModel>(queryAttendance, parameters).ToList());
 
-                if (result.IsCompleted)
+                if (attendanceRecords.IsCompleted)
                 {
-                    if (result.Result.Count != 0)
+                    var records = attendanceRecords.Result;
+
+                    // Generate a list of all dates in the range
+                    var allDates = Enumerable.Range(0, 1 + endDate.Value.Subtract(startDate.Value).Days)
+                        .Select(offset => startDate.Value.AddDays(offset))
+                        .ToList();
+
+                    int daysPresent = 0;
+                    int daysAbsent = 0;
+
+                    foreach (var date in allDates)
                     {
-                        response = Request.CreateResponse(HttpStatusCode.OK, result.Result);
+                        var record = records.FirstOrDefault(r => r.AttendanceDate.Date == date.Date);
+
+                        if (record != null)
+                        {
+                            daysPresent++;
+                        }
+                        else
+                        {
+                            daysAbsent++;
+                        }
                     }
-                    else
+
+                    var summary = new AttendanceSummaryModel
                     {
-                        //response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "No Data Found");
-                        response = Request.CreateResponse(HttpStatusCode.OK, new List<UserAttendanceDetailModel>());
-                    }
+                        DaysPresent = daysPresent,
+                        DaysLeave = daysAbsent
+                    };
+
+
+                    var responseModel = new
+                    {
+                        AttendanceDetails = records,
+                        AttendanceSummary = summary
+                    };
+
+                    response = Request.CreateResponse(HttpStatusCode.OK, responseModel);
                 }
                 else
                 {
@@ -687,10 +720,7 @@ Gender, OrganizationId, RoleId, DesignationId, TeamId, Active, EmployeeID)
         }
         #endregion
 
-        private string GetConnectionString()
-        {
-            return ConfigurationManager.ConnectionStrings["EMBContext"].ConnectionString;
-        }
+
 
         #region Commented
         #region Commented OLD InsertAttendance
@@ -735,6 +765,73 @@ Gender, OrganizationId, RoleId, DesignationId, TeamId, Active, EmployeeID)
         //        _logErrors.Writelog(ex, "Users", "InsertAttendance");
         //        return InternalServerError(ex);
         //    }
+        //}
+        #endregion
+
+        #region commented worked GetUserAttendanceDetails
+        //[HttpGet]
+        //public HttpResponseMessage GetUserAttendanceDetails([FromUri] int userId, [FromUri] DateTime? startDate = null, [FromUri] DateTime? endDate = null)
+        //{
+        //    HttpResponseMessage response = null;
+        //    try
+        //    {
+        //        // Current week if dates not given
+        //        if (!startDate.HasValue || !endDate.HasValue)
+        //        {
+        //            DateTime today = DateTime.Today;
+        //            int diff = today.DayOfWeek - DayOfWeek.Monday;
+        //            DateTime startOfWeek = today.AddDays(-diff).Date;
+        //            DateTime endOfWeek = startOfWeek.AddDays(6);
+
+        //            startDate = startOfWeek;
+        //            endDate = endOfWeek;
+        //        }
+
+        //        var query = @"
+        //            SELECT 
+        //                U.First_Name AS FirstName, 
+        //                U.Email, 
+        //                U.EmployeeID AS EmployeeId, 
+        //                U.Active, 
+        //                A.AttendanceDate, 
+        //                A.Start_Time, 
+        //                A.End_Time, 
+        //                A.Total_Time, 
+        //                A.Late_Time, 
+        //                A.Status 
+        //            FROM Users U
+        //                INNER JOIN Attendance A ON U.Id = A.UserId
+        //                WHERE U.Id = @UserId
+        //                  AND A.AttendanceDate BETWEEN @StartDate AND @EndDate";
+
+        //        var parameters = new { UserId = userId, StartDate = startDate.Value, EndDate = endDate.Value };
+
+        //        var result = Task.FromResult(_dapper.GetAll<UserAttendanceDetailModel>(query, parameters).ToList());
+
+        //        if (result.IsCompleted)
+        //        {
+        //            if (result.Result.Count != 0)
+        //            {
+        //                response = Request.CreateResponse(HttpStatusCode.OK, result.Result);
+        //            }
+        //            else
+        //            {
+        //                //response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "No Data Found");
+        //                response = Request.CreateResponse(HttpStatusCode.OK, new List<UserAttendanceDetailModel>());
+        //            }
+        //        }
+        //        else
+        //        {
+        //            response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "Error");
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logErrors.Writelog(ex, "Users", "GetUserAttendanceDetails");
+        //        response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex.Message);
+        //    }
+
+        //    return response;
         //}
         #endregion
 

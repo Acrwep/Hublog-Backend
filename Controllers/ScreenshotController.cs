@@ -15,8 +15,13 @@ namespace EMP.Controllers
     {
         private readonly Dapperr _dapper = new Dapperr();
         private readonly LogErrors _logErrors = new LogErrors();
+        private string GetConnectionString()
+        {
+            return ConfigurationManager.ConnectionStrings["EMBContext"].ConnectionString;
+        }
 
         //USERS,EMPLOYEE
+        #region  GetUserScreenShots
         [Authorize(Roles = "SUPER_ADMIN,ADMIN")]
         [HttpGet]
         [Route("api/Users/GetUserScreenShots")]
@@ -63,12 +68,7 @@ namespace EMP.Controllers
                 return Request.CreateResponse(HttpStatusCode.NotFound, ex.InnerException?.Message ?? ex.Message);
             }
         }
+        #endregion
 
-
-
-        private string GetConnectionString()
-        {
-            return ConfigurationManager.ConnectionStrings["EMBContext"].ConnectionString;
-        }
     }
 }
