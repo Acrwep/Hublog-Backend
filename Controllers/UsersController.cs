@@ -29,53 +29,7 @@ namespace EMP.Controllers
         private readonly LogErrors _logErrors = new LogErrors();
         CommonFunctiton objfun = new CommonFunctiton();
 
-        // Ensure this is imported for SQL Server usage
-
-        #region OLD InsertAttendance
-        //[Authorize(Roles = "EMPLOYEE")]
-        //[HttpPost]
-        //public async Task<IHttpActionResult> InsertAttendance(List<UserAttendanceModel> model)
-        //{
-        //    try
-        //    {
-        //        if (!ModelState.IsValid)
-        //        {
-        //            _logErrors.WriteDirectLog("InsertAttendance", "Model State is Not Valid");
-        //            return BadRequest(ModelState);
-        //        }
-
-        //        foreach (var attendanceModel in model)
-        //        {
-        //            var parameters = new DynamicParameters();
-        //            parameters.Add("@UserId", attendanceModel.UserId);
-        //            parameters.Add("@OrganizationId", attendanceModel.OrganizationId);
-        //            parameters.Add("@AttendanceDate", attendanceModel.AttendanceDate);
-        //            parameters.Add("@Start_Time", attendanceModel.Start_Time);
-        //            parameters.Add("@End_Time", attendanceModel.End_Time);
-        //            parameters.Add("@Total_Time", attendanceModel.Total_Time);
-        //            parameters.Add("@Late_Time", attendanceModel.Late_Time);
-        //            parameters.Add("@Status", attendanceModel.Status);
-
-        //            // Execute the stored procedure using Dapper
-        //            var result = await _dapper.ExecuteAsync("SP_InsertAttendance", parameters, CommandType.StoredProcedure);
-
-        //            if (result <= 0)
-        //            {
-        //                // return NotFound(new { Message = "Error: Insertion failed for UserId " + attendanceModel.UserId });
-        //            }
-        //        }
-
-        //        // Assuming all entries were processed successfully
-        //        return Ok("InsertAttendance" + Message.CreateSuccess);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logErrors.Writelog(ex, "Users", "InsertAttendance");
-        //        return InternalServerError(ex);
-        //    }
-        //}
-        #endregion
-
+        #region NEW InsertAttendance
         [Authorize(Roles = "EMPLOYEE")]
         [HttpPost]
         public async Task<IHttpActionResult> InsertAttendance(List<UserAttendanceModel> model)
@@ -116,98 +70,6 @@ namespace EMP.Controllers
                 return InternalServerError(ex);
             }
         }
-
-
-        // [Authorize(Roles = "EMPLOYEE")]
-        //[HttpPost]
-        //public HttpResponseMessage InsertAttendance(List<UserAttendanceModel> model)
-        //{
-        //    Thread.CurrentPrincipal = HttpContext.Current.User;
-        //    HttpResponseMessage response = null;
-        //    if (ModelState.IsValid)
-        //    {
-        //        try
-        //        {
-        //            string details = JsonConvert.SerializeObject(model);
-        //            details = details.Replace("\"null\"", "\"\"");
-        //            details = details.Replace("null", "\"\"");
-        //            details = details.Replace("'", "");
-        //            var result = Task.FromResult(_dapper.Get<ResultModel>("Exec [SP_InsertAttendance] '" + details + "'"));
-        //            if (result.IsCompleted)
-        //            {
-        //                if (result.Result.Result == 1)
-        //                {
-        //                    response = Request.CreateResponse(HttpStatusCode.OK, "InsertAttendance" + Message.CreateSuccess);
-        //                }
-        //                else
-        //                {
-        //                    response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "Error"+ result.Result.Msg);
-        //                }
-        //            }
-        //            else
-        //            {
-        //                response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "Error" + result.Result.Msg);
-        //            }
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            _logErrors.Writelog(ex, "Users", "InsertAttendance");
-        //            response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex);
-        //        }
-        //    }
-        //    else
-        //    {
-        //        _logErrors.WriteDirectLog("InsertAttendance", "UserLogin" + "Model State is Not Valid");
-        //        response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Model State is Not Valid");
-        //    }
-        //    return response;
-        //}
-
-        #region Old InsertBreak
-        //[Authorize(Roles = "EMPLOYEE")]
-        //[HttpPost]
-        //public HttpResponseMessage InsertBreak(List<UserBreakModel> model)
-        //{
-        //    Thread.CurrentPrincipal = HttpContext.Current.User;
-        //    HttpResponseMessage response = null;
-        //    if (ModelState.IsValid)
-        //    {
-        //        try
-        //        {
-        //            string details = JsonConvert.SerializeObject(model);
-        //            details = details.Replace("\"null\"", "\"\"");
-        //            details = details.Replace("null", "\"\"");
-        //            details = details.Replace("'", "");
-        //            var result = Task.FromResult(_dapper.Get<ResultModel>("Exec [SP_BreakEntry] '" + details + "'"));
-        //            if (result.IsCompleted)
-        //            {
-        //                if (result.Result.Result == 1)
-        //                {
-        //                    response = Request.CreateResponse(HttpStatusCode.OK, "InsertBreak" + Message.CreateSuccess);
-        //                }
-        //                else
-        //                {
-        //                    response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "Error" + result.Result.Msg);
-        //                }
-        //            }
-        //            else
-        //            {
-        //                response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "Error" + result.Result.Msg);
-        //            }
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            _logErrors.Writelog(ex, "Users", "InsertBreak");
-        //            response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex);
-        //        }
-        //    }
-        //    else
-        //    {
-        //        _logErrors.WriteDirectLog("InsertAttendance", "UserLogin" + "Model State is Not Valid");
-        //        response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Model State is Not Valid");
-        //    }
-        //    return response;
-        //}
         #endregion
 
         #region new insertbreak
@@ -258,11 +120,261 @@ namespace EMP.Controllers
 
 
         #endregion
-        private string GetConnectionString()
-        {
-            return ConfigurationManager.ConnectionStrings["EMBContext"].ConnectionString;
-        }
 
+        #region New UploadFile
+        [Authorize(Roles = "SUPER_ADMIN,ADMIN,USERS,EMPLOYEE")]
+        [HttpPost]
+        public HttpResponseMessage UploadFile()
+        {
+            Int32 UId = 0;
+            Int32 OId = 0;
+            string SType = "";
+            string SDate = "";
+
+            try
+            {
+                UId = Convert.ToInt32(Request.Headers.GetValues("UId").First());
+                OId = Convert.ToInt32(Request.Headers.GetValues("OId").First());
+                SType = Request.Headers.GetValues("SType").First();
+                SDate = Request.Headers.GetValues("SDate").First();
+            }
+            catch (Exception ex)
+            {
+                return Request.CreateResponse(HttpStatusCode.BadRequest, $"Header parsing error: {ex.Message}");
+            }
+
+            try
+            {
+                if (System.Web.HttpContext.Current.Request.Files.AllKeys.Any())
+                {
+                    var pic = System.Web.HttpContext.Current.Request.Files["MyImages"];
+                    if (pic != null && pic.ContentLength > 0)
+                    {
+                        var fileName = Path.GetFileName(pic.FileName);
+                        var fileExtension = Path.GetExtension(fileName);
+                        var imageName = (SType == "ScreenShots") ? fileName.Replace(fileExtension, "") : Guid.NewGuid().ToString();
+                        var newFileName = imageName + fileExtension;
+
+                        // Define the path to save the file
+                        string folderPath = System.Web.Hosting.HostingEnvironment.MapPath("~/ScreenShots/");
+                        if (!Directory.Exists(folderPath))
+                        {
+                            Directory.CreateDirectory(folderPath);
+                        }
+
+                        var completeFilePath = Path.Combine(folderPath, newFileName);
+
+                        // Save the file locally
+                        pic.SaveAs(completeFilePath);
+
+                        // Read the image data
+                        byte[] imageData;
+                        using (var ms = new MemoryStream())
+                        {
+                            pic.InputStream.CopyTo(ms);
+                            imageData = ms.ToArray();
+                        }
+
+                        if (imageData.Length == 0)
+                        {
+                            return Request.CreateResponse(HttpStatusCode.BadRequest, "Image data is empty.");
+                        }
+
+                        // Prepare parameters for stored procedure
+                        var parameters = new DynamicParameters();
+                        parameters.Add("@UserId", UId);
+                        parameters.Add("@OrganizationId", OId);
+                        parameters.Add("@ScreenShotDate", SDate);
+                        parameters.Add("@FileName", newFileName);
+                        parameters.Add("@FilePath", completeFilePath);
+                        parameters.Add("@ImageData", imageData);
+
+                        // Execute the stored procedure
+                        string connectionString = GetConnectionString();
+                        using (var connection = new SqlConnection(connectionString))
+                        {
+                            connection.Open();
+                            connection.Execute("SP_InsertScreenShot", parameters, commandType: CommandType.StoredProcedure);
+                        }
+
+                        return Request.CreateResponse(HttpStatusCode.OK, completeFilePath);
+                    }
+                    else
+                    {
+                        return Request.CreateResponse(HttpStatusCode.BadRequest, "No file uploaded.");
+                    }
+                }
+                else
+                {
+                    return Request.CreateResponse(HttpStatusCode.BadRequest, "No files found.");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logErrors.Writelog(ex, "User", "UploadFile");
+                return Request.CreateResponse(HttpStatusCode.InternalServerError, ex.Message);
+            }
+        }
+        #endregion
+
+        #region GetUserAttendanceDetails
+        [HttpGet]
+        public HttpResponseMessage GetUserAttendanceDetails([FromUri] int userId, [FromUri] DateTime? startDate = null, [FromUri] DateTime? endDate = null)
+        {
+            HttpResponseMessage response = null;
+            try
+            {
+                // Current week if dates not given
+                if (!startDate.HasValue || !endDate.HasValue)
+                {
+                    DateTime today = DateTime.Today;
+                    int diff = today.DayOfWeek - DayOfWeek.Monday;
+                    DateTime startOfWeek = today.AddDays(-diff).Date;
+                    DateTime endOfWeek = startOfWeek.AddDays(6);
+
+                    startDate = startOfWeek;
+                    endDate = endOfWeek;
+                }
+
+                var query = @"
+                    SELECT 
+                        U.First_Name AS FirstName, 
+                        U.Email, 
+                        U.EmployeeID AS EmployeeId, 
+                        U.Active, 
+                        A.AttendanceDate, 
+                        A.Start_Time, 
+                        A.End_Time, 
+                        A.Total_Time, 
+                        A.Late_Time, 
+                        A.Status 
+                    FROM Users U
+                        INNER JOIN Attendance A ON U.Id = A.UserId
+                        WHERE U.Id = @UserId
+                          AND A.AttendanceDate BETWEEN @StartDate AND @EndDate";
+
+                var parameters = new { UserId = userId, StartDate = startDate.Value, EndDate = endDate.Value };
+
+                var result = Task.FromResult(_dapper.GetAll<UserAttendanceDetailModel>(query, parameters).ToList());
+
+                if (result.IsCompleted)
+                {
+                    if (result.Result.Count != 0)
+                    {
+                        response = Request.CreateResponse(HttpStatusCode.OK, result.Result);
+                    }
+                    else
+                    {
+                        //response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "No Data Found");
+                        response = Request.CreateResponse(HttpStatusCode.OK, new List<UserAttendanceDetailModel>());
+                    }
+                }
+                else
+                {
+                    response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "Error");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logErrors.Writelog(ex, "Users", "GetUserAttendanceDetails");
+                response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex.Message);
+            }
+
+            return response;
+        }
+        #endregion
+
+        #region Commented OLD InsertAttendance
+        //[Authorize(Roles = "EMPLOYEE")]
+        //[HttpPost]
+        //public async Task<IHttpActionResult> InsertAttendance(List<UserAttendanceModel> model)
+        //{
+        //    try
+        //    {
+        //        if (!ModelState.IsValid)
+        //        {
+        //            _logErrors.WriteDirectLog("InsertAttendance", "Model State is Not Valid");
+        //            return BadRequest(ModelState);
+        //        }
+
+        //        foreach (var attendanceModel in model)
+        //        {
+        //            var parameters = new DynamicParameters();
+        //            parameters.Add("@UserId", attendanceModel.UserId);
+        //            parameters.Add("@OrganizationId", attendanceModel.OrganizationId);
+        //            parameters.Add("@AttendanceDate", attendanceModel.AttendanceDate);
+        //            parameters.Add("@Start_Time", attendanceModel.Start_Time);
+        //            parameters.Add("@End_Time", attendanceModel.End_Time);
+        //            parameters.Add("@Total_Time", attendanceModel.Total_Time);
+        //            parameters.Add("@Late_Time", attendanceModel.Late_Time);
+        //            parameters.Add("@Status", attendanceModel.Status);
+
+        //            // Execute the stored procedure using Dapper
+        //            var result = await _dapper.ExecuteAsync("SP_InsertAttendance", parameters, CommandType.StoredProcedure);
+
+        //            if (result <= 0)
+        //            {
+        //                // return NotFound(new { Message = "Error: Insertion failed for UserId " + attendanceModel.UserId });
+        //            }
+        //        }
+
+        //        // Assuming all entries were processed successfully
+        //        return Ok("InsertAttendance" + Message.CreateSuccess);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logErrors.Writelog(ex, "Users", "InsertAttendance");
+        //        return InternalServerError(ex);
+        //    }
+        //}
+        #endregion
+
+        #region  Commented Old InsertBreak
+        //[Authorize(Roles = "EMPLOYEE")]
+        //[HttpPost]
+        //public HttpResponseMessage InsertBreak(List<UserBreakModel> model)
+        //{
+        //    Thread.CurrentPrincipal = HttpContext.Current.User;
+        //    HttpResponseMessage response = null;
+        //    if (ModelState.IsValid)
+        //    {
+        //        try
+        //        {
+        //            string details = JsonConvert.SerializeObject(model);
+        //            details = details.Replace("\"null\"", "\"\"");
+        //            details = details.Replace("null", "\"\"");
+        //            details = details.Replace("'", "");
+        //            var result = Task.FromResult(_dapper.Get<ResultModel>("Exec [SP_BreakEntry] '" + details + "'"));
+        //            if (result.IsCompleted)
+        //            {
+        //                if (result.Result.Result == 1)
+        //                {
+        //                    response = Request.CreateResponse(HttpStatusCode.OK, "InsertBreak" + Message.CreateSuccess);
+        //                }
+        //                else
+        //                {
+        //                    response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "Error" + result.Result.Msg);
+        //                }
+        //            }
+        //            else
+        //            {
+        //                response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "Error" + result.Result.Msg);
+        //            }
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            _logErrors.Writelog(ex, "Users", "InsertBreak");
+        //            response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex);
+        //        }
+        //    }
+        //    else
+        //    {
+        //        _logErrors.WriteDirectLog("InsertAttendance", "UserLogin" + "Model State is Not Valid");
+        //        response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Model State is Not Valid");
+        //    }
+        //    return response;
+        //}
+        #endregion
 
         #region  commented Old UploadFile
         //[Authorize(Roles = "SUPER_ADMIN,ADMIN,USERS,EMPLOYEE")]
@@ -374,150 +486,6 @@ namespace EMP.Controllers
         //}
         #endregion
 
-
-        [Authorize(Roles = "SUPER_ADMIN,ADMIN,USERS,EMPLOYEE")]
-        [HttpPost]
-        public HttpResponseMessage UploadFile()
-        {
-            Int32 UId = 0;
-            Int32 OId = 0;
-            string SType = "";
-            string SDate = "";
-
-            try
-            {
-                UId = Convert.ToInt32(Request.Headers.GetValues("UId").First());
-                OId = Convert.ToInt32(Request.Headers.GetValues("OId").First());
-                SType = Request.Headers.GetValues("SType").First();
-                SDate = Request.Headers.GetValues("SDate").First();
-            }
-            catch (Exception ex)
-            {
-                return Request.CreateResponse(HttpStatusCode.BadRequest, $"Header parsing error: {ex.Message}");
-            }
-
-            try
-            {
-                if (System.Web.HttpContext.Current.Request.Files.AllKeys.Any())
-                {
-                    var pic = System.Web.HttpContext.Current.Request.Files["MyImages"];
-                    if (pic != null && pic.ContentLength > 0)
-                    {
-                        var fileName = Path.GetFileName(pic.FileName);
-                        var fileExtension = Path.GetExtension(fileName);
-                        var imageName = (SType == "ScreenShots") ? fileName.Replace(fileExtension, "") : Guid.NewGuid().ToString();
-                        var newFileName = imageName + fileExtension;
-
-                        // Define the path to save the file
-                        string folderPath = System.Web.Hosting.HostingEnvironment.MapPath("~/ScreenShots/");
-                        if (!Directory.Exists(folderPath))
-                        {
-                            Directory.CreateDirectory(folderPath);
-                        }
-
-                        var completeFilePath = Path.Combine(folderPath, newFileName);
-
-                        // Save the file locally
-                        pic.SaveAs(completeFilePath);
-
-                        // Read the image data
-                        byte[] imageData;
-                        using (var ms = new MemoryStream())
-                        {
-                            pic.InputStream.CopyTo(ms);
-                            imageData = ms.ToArray();
-                        }
-
-                        if (imageData.Length == 0)
-                        {
-                            return Request.CreateResponse(HttpStatusCode.BadRequest, "Image data is empty.");
-                        }
-
-                        // Prepare parameters for stored procedure
-                        var parameters = new DynamicParameters();
-                        parameters.Add("@UserId", UId);
-                        parameters.Add("@OrganizationId", OId);
-                        parameters.Add("@ScreenShotDate", SDate);
-                        parameters.Add("@FileName", newFileName);
-                        parameters.Add("@FilePath", completeFilePath);
-                        parameters.Add("@ImageData", imageData);
-
-                        // Execute the stored procedure
-                        string connectionString = GetConnectionString();
-                        using (var connection = new SqlConnection(connectionString))
-                        {
-                            connection.Open();
-                            connection.Execute("SP_InsertScreenShot", parameters, commandType: CommandType.StoredProcedure);
-                        }
-
-                        return Request.CreateResponse(HttpStatusCode.OK, completeFilePath);
-                    }
-                    else
-                    {
-                        return Request.CreateResponse(HttpStatusCode.BadRequest, "No file uploaded.");
-                    }
-                }
-                else
-                {
-                    return Request.CreateResponse(HttpStatusCode.BadRequest, "No files found.");
-                }
-            }
-            catch (Exception ex)
-            {
-                _logErrors.Writelog(ex, "User", "UploadFile");
-                return Request.CreateResponse(HttpStatusCode.InternalServerError, ex.Message);
-            }
-        }
-
-
-        #region GetAvailableBreak
-        [Authorize(Roles = "EMPLOYEE")]
-        [HttpPost]
-        public HttpResponseMessage GetAvailableBreak(GetModels obj)
-        {
-            Thread.CurrentPrincipal = HttpContext.Current.User;
-            HttpResponseMessage response = null;
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    //var result = Task.FromResult(_dapper.GetAll<BreakMaster>("select * from BreakMaster B with(Nolock) where B.OrganizationId=" + obj.OrganizationId + " and B.Active=1 and B.id not in(select distinct(Id) from BreakEntry BE where BE.BreakDate='" + obj.CDate + "' and  BE.UserId='" + obj.UserId + "' and  BE.OrganizationId='" + obj.OrganizationId + "') ").ToList());
-                    var result = Task.FromResult(_dapper.GetAll<BreakMaster>(
-                                "select * from BreakMaster B with(Nolock) where B.OrganizationId=" + obj.OrganizationId +
-                                " and B.Active=1 and B.id not in(select distinct(Id) from BreakEntry BE where BE.Start_Time='" + obj.CDate +
-                                "' and BE.UserId='" + obj.UserId + "' and BE.OrganizationId='" + obj.OrganizationId + "')").ToList());
-
-                    if (result.IsCompleted)
-                    {
-                        if (result.Result.Count != 0)
-                        {
-                            response = Request.CreateResponse(HttpStatusCode.OK, result.Result);
-                        }
-                        else
-                        {
-                            response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "No Data Found");
-                        }
-                    }
-                    else
-                    {
-                        response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "Error");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logErrors.Writelog(ex, "Users", "GetAvailableBreak");
-                    response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex);
-                }
-            }
-            else
-            {
-                _logErrors.WriteDirectLog("Users", "GetAvailableBreak" + "Model State is Not Valid");
-                response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Model State is Not Valid");
-            }
-            return response;
-        }
-        #endregion
-
         #region  commented GetAvailableBreak
         //[Authorize(Roles = "EMPLOYEE")]
         //[HttpPost]
@@ -576,35 +544,6 @@ namespace EMP.Controllers
         //}
         #endregion
 
-
-        //Updated upstream
-        //[HttpGet]
-        //public HttpResponseMessage GetAllUsers()
-        //{
-        //    HttpResponseMessage response = null;
-
-        //    try
-        //    {
-        //        var result = _dapper.GetAll<Users>("SELECT * FROM Users WITH (NOLOCK)");
-
-        //        if (result != null && result.Any())
-        //        {
-        //            response = Request.CreateResponse(HttpStatusCode.OK, result);
-        //        }
-        //        else
-        //        {
-        //            response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "No Data Found");
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logErrors.Writelog(ex, "Users", "GetAllUsers");
-        //        response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex.Message);
-        //    }
-
-        //    return response;
-        //}
-
         #region  Commented Old GetUserAttendanceDetails
         //[HttpGet]
         //public HttpResponseMessage GetUserAttendanceDetails([FromUri] int userId)
@@ -657,73 +596,6 @@ namespace EMP.Controllers
 
         //    return response;
         //}
-        #endregion
-
-        #region GetUserAttendanceDetails
-        [HttpGet]
-        public HttpResponseMessage GetUserAttendanceDetails([FromUri] int userId, [FromUri] DateTime? startDate = null, [FromUri] DateTime? endDate = null)
-        {
-            HttpResponseMessage response = null;
-            try
-            {
-                // Current week if dates not given
-                if (!startDate.HasValue || !endDate.HasValue)
-                {
-                    DateTime today = DateTime.Today;
-                    int diff = today.DayOfWeek - DayOfWeek.Monday;
-                    DateTime startOfWeek = today.AddDays(-diff).Date;  
-                    DateTime endOfWeek = startOfWeek.AddDays(6);  
-
-                    startDate = startOfWeek;
-                    endDate = endOfWeek;
-                }
-
-                var query = @"
-                    SELECT 
-                        U.First_Name AS FirstName, 
-                        U.Email, 
-                        U.EmployeeID AS EmployeeId, 
-                        U.Active, 
-                        A.AttendanceDate, 
-                        A.Start_Time, 
-                        A.End_Time, 
-                        A.Total_Time, 
-                        A.Late_Time, 
-                        A.Status 
-                    FROM Users U
-                        INNER JOIN Attendance A ON U.Id = A.UserId
-                        WHERE U.Id = @UserId
-                          AND A.AttendanceDate BETWEEN @StartDate AND @EndDate";
-
-                var parameters = new { UserId = userId, StartDate = startDate.Value, EndDate = endDate.Value };
-
-                var result = Task.FromResult(_dapper.GetAll<UserAttendanceDetailModel>(query, parameters).ToList());
-
-                if (result.IsCompleted)
-                {
-                    if (result.Result.Count != 0)
-                    {
-                        response = Request.CreateResponse(HttpStatusCode.OK, result.Result);
-                    }
-                    else
-                    {
-                        //response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "No Data Found");
-                        response = Request.CreateResponse(HttpStatusCode.OK, new List<UserAttendanceDetailModel>());
-                    }
-                }
-                else
-                {
-                    response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "Error");
-                }
-            }
-            catch (Exception ex)
-            {
-                _logErrors.Writelog(ex, "Users", "GetUserAttendanceDetails");
-                response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex.Message);
-            }
-
-            return response;
-        }
         #endregion
 
         #region commented  OLD GetUserBreakRecordDetails
@@ -788,6 +660,133 @@ namespace EMP.Controllers
 
         //    return response;
         //}
+        #endregion
+
+        //Updated upstream
+        //[HttpGet]
+        //public HttpResponseMessage GetAllUsers()
+        //{
+        //    HttpResponseMessage response = null;
+
+        //    try
+        //    {
+        //        var result = _dapper.GetAll<Users>("SELECT * FROM Users WITH (NOLOCK)");
+
+        //        if (result != null && result.Any())
+        //        {
+        //            response = Request.CreateResponse(HttpStatusCode.OK, result);
+        //        }
+        //        else
+        //        {
+        //            response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "No Data Found");
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logErrors.Writelog(ex, "Users", "GetAllUsers");
+        //        response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex.Message);
+        //    }
+
+        //    return response;
+        //}
+
+        // [Authorize(Roles = "EMPLOYEE")]
+        //[HttpPost]
+        //public HttpResponseMessage InsertAttendance(List<UserAttendanceModel> model)
+        //{
+        //    Thread.CurrentPrincipal = HttpContext.Current.User;
+        //    HttpResponseMessage response = null;
+        //    if (ModelState.IsValid)
+        //    {
+        //        try
+        //        {
+        //            string details = JsonConvert.SerializeObject(model);
+        //            details = details.Replace("\"null\"", "\"\"");
+        //            details = details.Replace("null", "\"\"");
+        //            details = details.Replace("'", "");
+        //            var result = Task.FromResult(_dapper.Get<ResultModel>("Exec [SP_InsertAttendance] '" + details + "'"));
+        //            if (result.IsCompleted)
+        //            {
+        //                if (result.Result.Result == 1)
+        //                {
+        //                    response = Request.CreateResponse(HttpStatusCode.OK, "InsertAttendance" + Message.CreateSuccess);
+        //                }
+        //                else
+        //                {
+        //                    response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "Error"+ result.Result.Msg);
+        //                }
+        //            }
+        //            else
+        //            {
+        //                response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "Error" + result.Result.Msg);
+        //            }
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            _logErrors.Writelog(ex, "Users", "InsertAttendance");
+        //            response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex);
+        //        }
+        //    }
+        //    else
+        //    {
+        //        _logErrors.WriteDirectLog("InsertAttendance", "UserLogin" + "Model State is Not Valid");
+        //        response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Model State is Not Valid");
+        //    }
+        //    return response;
+        //}
+
+
+        private string GetConnectionString()
+        {
+            return ConfigurationManager.ConnectionStrings["EMBContext"].ConnectionString;
+        }
+
+        #region GetAvailableBreak
+        [Authorize(Roles = "EMPLOYEE")]
+        [HttpPost]
+        public HttpResponseMessage GetAvailableBreak(GetModels obj)
+        {
+            Thread.CurrentPrincipal = HttpContext.Current.User;
+            HttpResponseMessage response = null;
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    //var result = Task.FromResult(_dapper.GetAll<BreakMaster>("select * from BreakMaster B with(Nolock) where B.OrganizationId=" + obj.OrganizationId + " and B.Active=1 and B.id not in(select distinct(Id) from BreakEntry BE where BE.BreakDate='" + obj.CDate + "' and  BE.UserId='" + obj.UserId + "' and  BE.OrganizationId='" + obj.OrganizationId + "') ").ToList());
+                    var result = Task.FromResult(_dapper.GetAll<BreakMaster>(
+                                "select * from BreakMaster B with(Nolock) where B.OrganizationId=" + obj.OrganizationId +
+                                " and B.Active=1 and B.id not in(select distinct(Id) from BreakEntry BE where BE.Start_Time='" + obj.CDate +
+                                "' and BE.UserId='" + obj.UserId + "' and BE.OrganizationId='" + obj.OrganizationId + "')").ToList());
+
+                    if (result.IsCompleted)
+                    {
+                        if (result.Result.Count != 0)
+                        {
+                            response = Request.CreateResponse(HttpStatusCode.OK, result.Result);
+                        }
+                        else
+                        {
+                            response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "No Data Found");
+                        }
+                    }
+                    else
+                    {
+                        response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "Error");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logErrors.Writelog(ex, "Users", "GetAvailableBreak");
+                    response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex);
+                }
+            }
+            else
+            {
+                _logErrors.WriteDirectLog("Users", "GetAvailableBreak" + "Model State is Not Valid");
+                response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Model State is Not Valid");
+            }
+            return response;
+        }
         #endregion
 
         #region GetUserBreakRecordDetails
@@ -857,6 +856,205 @@ namespace EMP.Controllers
             return response;
         }
         #endregion
+
+        #region GetUsersByTeamId
+        //[HttpGet]
+        //public HttpResponseMessage GetUsersByTeamId([FromUri] int TeamId)
+        //{
+        //    HttpResponseMessage response = null;
+
+        //    if (ModelState.IsValid)
+        //    {
+        //        try
+        //        {
+        //            var query = @"
+        //        SELECT 
+        //            u.[Id],
+        //            u.[First_Name],
+        //            u.[Last_Name],
+        //            u.[Email],
+        //            u.[DOB],
+        //            u.[DOJ],
+        //            u.[Phone],
+        //            u.[UsersName],
+        //            u.[Password],
+        //            u.[Gender],
+        //            u.[OrganizationId],
+        //            u.[RoleId],
+        //            u.[DesignationId],
+        //            u.[TeamId],
+        //            u.[Active],
+        //            u.[EmployeeID],
+        //            t.[Name] AS TeamName
+        //        FROM 
+        //            [EMP2].[dbo].[Users] u
+        //        INNER JOIN 
+        //            [EMP2].[dbo].[Team] t
+        //        ON 
+        //            u.[TeamId] = t.[Id]
+        //        WHERE 
+        //            u.[TeamId] = @TeamId
+        //    ";
+
+        //            var result = _dapper.GetAll<dynamic>(query, new { TeamId = TeamId });
+
+        //            // Group users by team
+        //            var teams = result
+        //                .GroupBy(r => new
+        //                {
+        //                    TeamId = (int)r.TeamId,
+        //                    TeamName = (string)r.TeamName
+        //                })
+        //                .Select(g => new
+        //                {
+        //                    Team = new
+        //                    {
+        //                        TeamId = g.Key.TeamId,
+        //                        TeamName = g.Key.TeamName,
+        //                        Users = g.Select(u => new
+        //                        {
+        //                            UserId = (int)u.Id,
+        //                            FirstName = (string)u.First_Name,
+        //                            LastName = (string)u.Last_Name,
+        //                            Email = (string)u.Email,
+        //                            DOB = (DateTime)u.DOB,
+        //                            DOJ = (DateTime)u.DOJ,
+        //                            Phone = (string)u.Phone,
+        //                            UsersName = (string)u.UsersName,
+        //                            Password = (string)u.Password,
+        //                            Gender = (string)u.Gender,
+        //                            OrganizationId = (int)u.OrganizationId,
+        //                            RoleId = (int)u.RoleId,
+        //                            DesignationId = (int)u.DesignationId,
+        //                            TeamId = (int)u.TeamId,
+        //                            Active = (bool)u.Active,
+        //                            EmployeeID = (string)u.EmployeeID
+        //                        })
+        //                    }
+        //                })
+        //                .ToList();
+
+        //            if (teams.Any())
+        //            {
+        //                response = Request.CreateResponse(HttpStatusCode.OK, teams);
+        //            }
+        //            else
+        //            {
+        //                response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "No Data Found");
+        //            }
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            _logErrors.Writelog(ex, "Users", "GetUsersByTeamId");
+        //            response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex);
+        //        }
+        //    }
+        //    else
+        //    {
+        //        _logErrors.WriteDirectLog("Users", "GetUsersByTeamId - Model State is Not Valid");
+        //        response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Model State is Not Valid");
+        //    }
+
+        //    return response;
+        //}
+        #endregion
+
+        [HttpGet]
+        public HttpResponseMessage GetUsersByTeamId([FromUri] int TeamId)
+        {
+            HttpResponseMessage response = null;
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    // Query to fetch users and their team
+                    var query = @"
+                SELECT 
+                    u.[Id],
+                    u.[First_Name],
+                    u.[Last_Name],
+                    u.[Email],
+                    u.[DOB],
+                    u.[DOJ],
+                    u.[Phone],
+                    u.[UsersName],
+                    u.[Password],
+                    u.[Gender],
+                    u.[OrganizationId],
+                    u.[RoleId],
+                    u.[DesignationId],
+                    u.[TeamId],
+                    u.[Active],
+                    u.[EmployeeID],
+                    t.[Name] AS TeamName
+                FROM 
+                    [EMP2].[dbo].[Users] u
+                INNER JOIN 
+                    [EMP2].[dbo].[Team] t
+                ON 
+                    u.[TeamId] = t.[Id]
+                WHERE 
+                    u.[TeamId] = @TeamId
+            ";
+
+                    var result = _dapper.GetAll<dynamic>(query, new { TeamId = TeamId });
+
+                    var teamData = result.FirstOrDefault();
+                    if (teamData == null)
+                    {
+                        response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "No Data Found");
+                        return response;
+                    }
+
+                    int teamId = teamData.TeamId;
+                    string teamName = teamData.TeamName;
+
+                    var responseData = new
+                    {
+                        Team = new
+                        {
+                            TeamId = teamId,
+                            TeamName = teamName,
+                            Users = result.Select(u => new
+                            {
+                                UserId = (int)u.Id,
+                                FirstName = (string)u.First_Name,
+                                LastName = (string)u.Last_Name,
+                                Email = (string)u.Email,
+                                DOB = (DateTime)u.DOB,
+                                DOJ = (DateTime)u.DOJ,
+                                Phone = (string)u.Phone,
+                                UsersName = (string)u.UsersName,
+                                Password = (string)u.Password,
+                                Gender = (string)u.Gender,
+                                OrganizationId = (int)u.OrganizationId,
+                                RoleId = (int)u.RoleId,
+                                DesignationId = (int)u.DesignationId,
+                                TeamId = (int)u.TeamId,
+                                Active = (bool)u.Active,
+                                EmployeeID = (string)u.EmployeeID
+                            }).ToList()
+                        }
+                    };
+
+                    response = Request.CreateResponse(HttpStatusCode.OK, responseData);
+                }
+                catch (Exception ex)
+                {
+                    _logErrors.Writelog(ex, "Users", "GetUsersByTeamId");
+                    response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex);
+                }
+            }
+            else
+            {
+                _logErrors.WriteDirectLog("Users", "GetUsersByTeamId - Model State is Not Valid");
+                response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Model State is Not Valid");
+            }
+
+            return response;
+        }
+
 
 
         [HttpGet]
