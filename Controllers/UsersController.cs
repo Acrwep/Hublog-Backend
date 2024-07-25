@@ -265,7 +265,6 @@ namespace EMP.Controllers
                 {
                     var records = attendanceRecords.Result;
 
-                    // Generate a list of all dates in the range
                     var allDates = Enumerable.Range(0, 1 + endDate.Value.Subtract(startDate.Value).Days)
                         .Select(offset => startDate.Value.AddDays(offset))
                         .ToList();
