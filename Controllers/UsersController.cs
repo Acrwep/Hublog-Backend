@@ -532,6 +532,7 @@ namespace EMP.Controllers
         #endregion
 
 
+<<<<<<< Updated upstream
         [HttpGet]
         public HttpResponseMessage GetAllUsers()
         {
@@ -560,6 +561,9 @@ namespace EMP.Controllers
         }
 
         #region commented Old GetUserAttendanceDetails
+=======
+        #region  Old GetUserAttendanceDetails
+>>>>>>> Stashed changes
         //[HttpGet]
         //public HttpResponseMessage GetUserAttendanceDetails([FromUri] int userId)
         //{
@@ -812,6 +816,33 @@ namespace EMP.Controllers
         }
         #endregion
 
+
+        [HttpGet]
+        public HttpResponseMessage GetAllUsers()
+        {
+            HttpResponseMessage response = null;
+
+            try
+            {
+                var result = _dapper.GetAll<Users>("SELECT * FROM Users WITH (NOLOCK)");
+
+                if (result != null && result.Any())
+                {
+                    response = Request.CreateResponse(HttpStatusCode.OK, result);
+                }
+                else
+                {
+                    response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "No Data Found");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logErrors.Writelog(ex, "Users", "GetAllUsers");
+                response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex.Message);
+            }
+
+            return response;
+        }
 
         [HttpGet]
         public HttpResponseMessage GetUsersByOrganizationId([FromUri] int OrganizationId)
