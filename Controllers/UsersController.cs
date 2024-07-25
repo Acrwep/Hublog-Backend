@@ -284,6 +284,404 @@ namespace EMP.Controllers
         }
         #endregion
 
+        #region  GetUsersByTeamId
+        [HttpGet]
+        public HttpResponseMessage GetUsersByTeamId([FromUri] int TeamId)
+        {
+            HttpResponseMessage response = null;
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    // Query to fetch users and their team
+                    var query = @"
+                SELECT 
+                    u.[Id],
+                    u.[First_Name],
+                    u.[Last_Name],
+                    u.[Email],
+                    u.[DOB],
+                    u.[DOJ],
+                    u.[Phone],
+                    u.[UsersName],
+                    u.[Password],
+                    u.[Gender],
+                    u.[OrganizationId],
+                    u.[RoleId],
+                    u.[DesignationId],
+                    u.[TeamId],
+                    u.[Active],
+                    u.[EmployeeID],
+                    t.[Name] AS TeamName
+                FROM 
+                    [EMP2].[dbo].[Users] u
+                INNER JOIN 
+                    [EMP2].[dbo].[Team] t
+                ON 
+                    u.[TeamId] = t.[Id]
+                WHERE 
+                    u.[TeamId] = @TeamId
+            ";
+
+                    var result = _dapper.GetAll<dynamic>(query, new { TeamId = TeamId });
+
+                    var teamData = result.FirstOrDefault();
+                    if (teamData == null)
+                    {
+                        response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "No Data Found");
+                        return response;
+                    }
+
+                    int teamId = teamData.TeamId;
+                    string teamName = teamData.TeamName;
+
+                    var responseData = new
+                    {
+                        Team = new
+                        {
+                            TeamId = teamId,
+                            TeamName = teamName,
+                            Users = result.Select(u => new
+                            {
+                                UserId = (int)u.Id,
+                                FirstName = (string)u.First_Name,
+                                LastName = (string)u.Last_Name,
+                                Email = (string)u.Email,
+                                DOB = (DateTime)u.DOB,
+                                DOJ = (DateTime)u.DOJ,
+                                Phone = (string)u.Phone,
+                                UsersName = (string)u.UsersName,
+                                Password = (string)u.Password,
+                                Gender = (string)u.Gender,
+                                OrganizationId = (int)u.OrganizationId,
+                                RoleId = (int)u.RoleId,
+                                DesignationId = (int)u.DesignationId,
+                                TeamId = (int)u.TeamId,
+                                Active = (bool)u.Active,
+                                EmployeeID = (string)u.EmployeeID
+                            }).ToList()
+                        }
+                    };
+
+                    response = Request.CreateResponse(HttpStatusCode.OK, responseData);
+                }
+                catch (Exception ex)
+                {
+                    _logErrors.Writelog(ex, "Users", "GetUsersByTeamId");
+                    response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex);
+                }
+            }
+            else
+            {
+                _logErrors.WriteDirectLog("Users", "GetUsersByTeamId - Model State is Not Valid");
+                response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Model State is Not Valid");
+            }
+
+            return response;
+        }
+        #endregion
+
+        #region GetUsersByOrganizationId
+        [HttpGet]
+        public HttpResponseMessage GetUsersByOrganizationId([FromUri] int OrganizationId)
+        {
+            HttpResponseMessage response = null;
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    var query = "SELECT * FROM Users WHERE OrganizationId = @OrganizationId AND Active = 1";
+                    var result = _dapper.GetAll<Users>(query, new { OrganizationId = OrganizationId });
+
+                    if (result.Any())
+                    {
+                        response = Request.CreateResponse(HttpStatusCode.OK, result);
+                    }
+                    else
+                    {
+                        response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "No Data Found");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logErrors.Writelog(ex, "Users", "GetUsersByOrganizationId");
+                    response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex);
+                }
+            }
+            else
+            {
+                _logErrors.WriteDirectLog("Users", "GetUsersByOrganizationId - Model State is Not Valid");
+                response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Model State is Not Valid");
+            }
+
+            return response;
+        }
+        #endregion
+
+        #region  User CRUD OPS
+        [HttpGet]
+        public HttpResponseMessage GetAllUsers()
+        {
+            HttpResponseMessage response = null;
+
+            try
+            {
+                var result = _dapper.GetAll<Users>("SELECT * FROM Users WITH (NOLOCK)");
+
+                if (result != null && result.Any())
+                {
+                    response = Request.CreateResponse(HttpStatusCode.OK, result);
+                }
+                else
+                {
+                    response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "No Data Found");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logErrors.Writelog(ex, "Users", "GetAllUsers");
+                response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex.Message);
+            }
+
+            return response;
+        }
+
+        [HttpPost]
+        public async Task<HttpResponseMessage> InsertUser(Users user)
+        {
+            HttpResponseMessage response = null;
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    string query = @"
+                INSERT INTO Users (First_Name, Last_Name, Email, DOB, DOJ, Phone, UsersName, Password, 
+Gender, OrganizationId, RoleId, DesignationId, TeamId, Active, EmployeeID) 
+                VALUES (@First_Name, @Last_Name, @Email, @DOB, @DOJ, @Phone, @UsersName, @Password,
+@Gender, @OrganizationId, @RoleId, @DesignationId, @TeamId, @Active, @EmployeeID)";
+
+                    user.Active = true;
+
+                    var result = await _dapper.ExecuteAsync(query, user);
+                    if (result > 0)
+                    {
+                        response = Request.CreateResponse(HttpStatusCode.Created, user);
+                    }
+                    else
+                    {
+                        response = Request.CreateErrorResponse(HttpStatusCode.InternalServerError, "Could not create user");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logErrors.Writelog(ex, "Users", "InsertUser");
+                    response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex);
+                }
+            }
+            else
+            {
+                _logErrors.WriteDirectLog("Users", "InsertUser - Model State is Not Valid");
+                response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Model State is Not Valid");
+            }
+
+            return response;
+        }
+        [HttpPut]
+        public async Task<HttpResponseMessage> UpdateUser(Users user)
+        {
+            HttpResponseMessage response = null;
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    string query = @"
+                UPDATE Users 
+                SET First_Name = @First_Name, Last_Name = @Last_Name, Email = @Email, DOB = @DOB, DOJ = @DOJ, Phone = @Phone, 
+                    UsersName = @UsersName, Password = @Password, Gender = @Gender, OrganizationId = @OrganizationId, 
+                    RoleId = @RoleId, DesignationId = @DesignationId, TeamId = @TeamId, Active = @Active, EmployeeID = @EmployeeID 
+                WHERE Id = @Id";
+
+                    var result = await _dapper.ExecuteAsync(query, user);
+                    if (result > 0)
+                    {
+                        response = Request.CreateResponse(HttpStatusCode.OK, user);
+                    }
+                    else
+                    {
+                        response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "User not found");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logErrors.Writelog(ex, "Users", "UpdateUser");
+                    response = Request.CreateErrorResponse(HttpStatusCode.InternalServerError, "Error updating user");
+                }
+            }
+            else
+            {
+                _logErrors.WriteDirectLog("Users", "UpdateUser - Model State is Not Valid");
+                response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Model State is Not Valid");
+            }
+
+            return response;
+        }
+
+        [HttpDelete]
+        public async Task<HttpResponseMessage> DeleteUser(int id)
+        {
+            HttpResponseMessage response = null;
+
+            try
+            {
+                string query = "DELETE FROM Users WHERE Id = @Id";
+
+                var result = await _dapper.ExecuteAsync(query, new { Id = id });
+
+                if (result > 0)
+                {
+                    response = Request.CreateResponse(HttpStatusCode.OK, $"User with Id {id} deleted successfully");
+                }
+                else
+                {
+                    response = Request.CreateErrorResponse(HttpStatusCode.NotFound, $"User with Id {id} not found");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logErrors.Writelog(ex, "Users", "DeleteUser");
+                response = Request.CreateErrorResponse(HttpStatusCode.InternalServerError, "Error deleting user");
+            }
+
+            return response;
+        }
+        #endregion
+
+        #region GetAvailableBreak
+        [Authorize(Roles = "EMPLOYEE")]
+        [HttpPost]
+        public HttpResponseMessage GetAvailableBreak(GetModels obj)
+        {
+            Thread.CurrentPrincipal = HttpContext.Current.User;
+            HttpResponseMessage response = null;
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    //var result = Task.FromResult(_dapper.GetAll<BreakMaster>("select * from BreakMaster B with(Nolock) where B.OrganizationId=" + obj.OrganizationId + " and B.Active=1 and B.id not in(select distinct(Id) from BreakEntry BE where BE.BreakDate='" + obj.CDate + "' and  BE.UserId='" + obj.UserId + "' and  BE.OrganizationId='" + obj.OrganizationId + "') ").ToList());
+                    var result = Task.FromResult(_dapper.GetAll<BreakMaster>(
+                                "select * from BreakMaster B with(Nolock) where B.OrganizationId=" + obj.OrganizationId +
+                                " and B.Active=1 and B.id not in(select distinct(Id) from BreakEntry BE where BE.Start_Time='" + obj.CDate +
+                                "' and BE.UserId='" + obj.UserId + "' and BE.OrganizationId='" + obj.OrganizationId + "')").ToList());
+
+                    if (result.IsCompleted)
+                    {
+                        if (result.Result.Count != 0)
+                        {
+                            response = Request.CreateResponse(HttpStatusCode.OK, result.Result);
+                        }
+                        else
+                        {
+                            response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "No Data Found");
+                        }
+                    }
+                    else
+                    {
+                        response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "Error");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logErrors.Writelog(ex, "Users", "GetAvailableBreak");
+                    response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex);
+                }
+            }
+            else
+            {
+                _logErrors.WriteDirectLog("Users", "GetAvailableBreak" + "Model State is Not Valid");
+                response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Model State is Not Valid");
+            }
+            return response;
+        }
+        #endregion
+
+        #region GetUserBreakRecordDetails
+        [HttpGet]
+        public HttpResponseMessage GetUserBreakRecordDetails([FromUri] int userId, [FromUri] DateTime? startDate = null, [FromUri] DateTime? endDate = null)
+        {
+            HttpResponseMessage response = null;
+            try
+            {
+                if (!startDate.HasValue || !endDate.HasValue)
+                {
+                    DateTime today = DateTime.Today;
+                    int diff = today.DayOfWeek - DayOfWeek.Monday;
+                    DateTime startOfWeek = today.AddDays(-diff).Date;
+                    DateTime endOfWeek = startOfWeek.AddDays(6);
+
+                    startDate = startOfWeek;
+                    endDate = endOfWeek;
+                }
+
+                // Convert EndDate to include the entire day
+                DateTime endDateTime = endDate.Value.Date.AddDays(1);
+
+                var query = @"
+                     SELECT 
+                        U.First_Name as FirstName,
+                        U.Email,
+                        BM.Name as BreakType,
+                        BE.Start_Time,
+                        BE.End_Time,
+                        BE.Status
+                     FROM Users U
+                        INNER JOIN BreakMaster BM ON U.OrganizationId = BM.OrganizationId
+                        INNER JOIN BreakEntry BE ON BM.OrganizationId = BE.OrganizationId
+                     WHERE U.Id = @UserId
+                        AND (
+                            BE.Start_Time < @EndDateTime
+                            AND BE.End_Time >= @StartDate
+                        )
+                     ";
+
+                var parameters = new { UserId = userId, StartDate = startDate.Value, EndDateTime = endDateTime };
+                var result = Task.FromResult(_dapper.GetAll<UserBreakRecordModel>(query, parameters).ToList());
+
+                if (result.IsCompleted)
+                {
+                    if (result.Result.Count != 0)
+                    {
+                        response = Request.CreateResponse(HttpStatusCode.OK, result.Result);
+                    }
+                    else
+                    {
+                        response = Request.CreateResponse(HttpStatusCode.NotFound, "No Data Found");
+                    }
+                }
+                else
+                {
+                    response = Request.CreateResponse(HttpStatusCode.NotFound, "Error");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logErrors.Writelog(ex, "Users", "GetUserBreakRecordDetails");
+                response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex.Message);
+            }
+
+            return response;
+        }
+        #endregion
+
+        private string GetConnectionString()
+        {
+            return ConfigurationManager.ConnectionStrings["EMBContext"].ConnectionString;
+        }
+
+        #region Commented
         #region Commented OLD InsertAttendance
         //[Authorize(Roles = "EMPLOYEE")]
         //[HttpPost]
@@ -735,501 +1133,7 @@ namespace EMP.Controllers
         //    return response;
         //}
 
-
-        private string GetConnectionString()
-        {
-            return ConfigurationManager.ConnectionStrings["EMBContext"].ConnectionString;
-        }
-
-        #region GetAvailableBreak
-        [Authorize(Roles = "EMPLOYEE")]
-        [HttpPost]
-        public HttpResponseMessage GetAvailableBreak(GetModels obj)
-        {
-            Thread.CurrentPrincipal = HttpContext.Current.User;
-            HttpResponseMessage response = null;
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    //var result = Task.FromResult(_dapper.GetAll<BreakMaster>("select * from BreakMaster B with(Nolock) where B.OrganizationId=" + obj.OrganizationId + " and B.Active=1 and B.id not in(select distinct(Id) from BreakEntry BE where BE.BreakDate='" + obj.CDate + "' and  BE.UserId='" + obj.UserId + "' and  BE.OrganizationId='" + obj.OrganizationId + "') ").ToList());
-                    var result = Task.FromResult(_dapper.GetAll<BreakMaster>(
-                                "select * from BreakMaster B with(Nolock) where B.OrganizationId=" + obj.OrganizationId +
-                                " and B.Active=1 and B.id not in(select distinct(Id) from BreakEntry BE where BE.Start_Time='" + obj.CDate +
-                                "' and BE.UserId='" + obj.UserId + "' and BE.OrganizationId='" + obj.OrganizationId + "')").ToList());
-
-                    if (result.IsCompleted)
-                    {
-                        if (result.Result.Count != 0)
-                        {
-                            response = Request.CreateResponse(HttpStatusCode.OK, result.Result);
-                        }
-                        else
-                        {
-                            response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "No Data Found");
-                        }
-                    }
-                    else
-                    {
-                        response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "Error");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logErrors.Writelog(ex, "Users", "GetAvailableBreak");
-                    response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex);
-                }
-            }
-            else
-            {
-                _logErrors.WriteDirectLog("Users", "GetAvailableBreak" + "Model State is Not Valid");
-                response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Model State is Not Valid");
-            }
-            return response;
-        }
         #endregion
-
-        #region GetUserBreakRecordDetails
-        [HttpGet]
-        public HttpResponseMessage GetUserBreakRecordDetails([FromUri] int userId, [FromUri] DateTime? startDate = null, [FromUri] DateTime? endDate = null)
-        {
-            HttpResponseMessage response = null;
-            try
-            {
-                if (!startDate.HasValue || !endDate.HasValue)
-                {
-                    DateTime today = DateTime.Today;
-                    int diff = today.DayOfWeek - DayOfWeek.Monday;
-                    DateTime startOfWeek = today.AddDays(-diff).Date;
-                    DateTime endOfWeek = startOfWeek.AddDays(6);
-
-                    startDate = startOfWeek;
-                    endDate = endOfWeek;
-                }
-
-                // Convert EndDate to include the entire day
-                DateTime endDateTime = endDate.Value.Date.AddDays(1);
-
-                var query = @"
-                     SELECT 
-                        U.First_Name as FirstName,
-                        U.Email,
-                        BM.Name as BreakType,
-                        BE.Start_Time,
-                        BE.End_Time,
-                        BE.Status
-                     FROM Users U
-                        INNER JOIN BreakMaster BM ON U.OrganizationId = BM.OrganizationId
-                        INNER JOIN BreakEntry BE ON BM.OrganizationId = BE.OrganizationId
-                     WHERE U.Id = @UserId
-                        AND (
-                            BE.Start_Time < @EndDateTime
-                            AND BE.End_Time >= @StartDate
-                        )
-                     ";
-
-                var parameters = new { UserId = userId, StartDate = startDate.Value, EndDateTime = endDateTime };
-                var result = Task.FromResult(_dapper.GetAll<UserBreakRecordModel>(query, parameters).ToList());
-
-                if (result.IsCompleted)
-                {
-                    if (result.Result.Count != 0)
-                    {
-                        response = Request.CreateResponse(HttpStatusCode.OK, result.Result);
-                    }
-                    else
-                    {
-                        response = Request.CreateResponse(HttpStatusCode.NotFound, "No Data Found");
-                    }
-                }
-                else
-                {
-                    response = Request.CreateResponse(HttpStatusCode.NotFound, "Error");
-                }
-            }
-            catch (Exception ex)
-            {
-                _logErrors.Writelog(ex, "Users", "GetUserBreakRecordDetails");
-                response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex.Message);
-            }
-
-            return response;
-        }
-        #endregion
-
-        #region GetUsersByTeamId
-        //[HttpGet]
-        //public HttpResponseMessage GetUsersByTeamId([FromUri] int TeamId)
-        //{
-        //    HttpResponseMessage response = null;
-
-        //    if (ModelState.IsValid)
-        //    {
-        //        try
-        //        {
-        //            var query = @"
-        //        SELECT 
-        //            u.[Id],
-        //            u.[First_Name],
-        //            u.[Last_Name],
-        //            u.[Email],
-        //            u.[DOB],
-        //            u.[DOJ],
-        //            u.[Phone],
-        //            u.[UsersName],
-        //            u.[Password],
-        //            u.[Gender],
-        //            u.[OrganizationId],
-        //            u.[RoleId],
-        //            u.[DesignationId],
-        //            u.[TeamId],
-        //            u.[Active],
-        //            u.[EmployeeID],
-        //            t.[Name] AS TeamName
-        //        FROM 
-        //            [EMP2].[dbo].[Users] u
-        //        INNER JOIN 
-        //            [EMP2].[dbo].[Team] t
-        //        ON 
-        //            u.[TeamId] = t.[Id]
-        //        WHERE 
-        //            u.[TeamId] = @TeamId
-        //    ";
-
-        //            var result = _dapper.GetAll<dynamic>(query, new { TeamId = TeamId });
-
-        //            // Group users by team
-        //            var teams = result
-        //                .GroupBy(r => new
-        //                {
-        //                    TeamId = (int)r.TeamId,
-        //                    TeamName = (string)r.TeamName
-        //                })
-        //                .Select(g => new
-        //                {
-        //                    Team = new
-        //                    {
-        //                        TeamId = g.Key.TeamId,
-        //                        TeamName = g.Key.TeamName,
-        //                        Users = g.Select(u => new
-        //                        {
-        //                            UserId = (int)u.Id,
-        //                            FirstName = (string)u.First_Name,
-        //                            LastName = (string)u.Last_Name,
-        //                            Email = (string)u.Email,
-        //                            DOB = (DateTime)u.DOB,
-        //                            DOJ = (DateTime)u.DOJ,
-        //                            Phone = (string)u.Phone,
-        //                            UsersName = (string)u.UsersName,
-        //                            Password = (string)u.Password,
-        //                            Gender = (string)u.Gender,
-        //                            OrganizationId = (int)u.OrganizationId,
-        //                            RoleId = (int)u.RoleId,
-        //                            DesignationId = (int)u.DesignationId,
-        //                            TeamId = (int)u.TeamId,
-        //                            Active = (bool)u.Active,
-        //                            EmployeeID = (string)u.EmployeeID
-        //                        })
-        //                    }
-        //                })
-        //                .ToList();
-
-        //            if (teams.Any())
-        //            {
-        //                response = Request.CreateResponse(HttpStatusCode.OK, teams);
-        //            }
-        //            else
-        //            {
-        //                response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "No Data Found");
-        //            }
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            _logErrors.Writelog(ex, "Users", "GetUsersByTeamId");
-        //            response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex);
-        //        }
-        //    }
-        //    else
-        //    {
-        //        _logErrors.WriteDirectLog("Users", "GetUsersByTeamId - Model State is Not Valid");
-        //        response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Model State is Not Valid");
-        //    }
-
-        //    return response;
-        //}
-        #endregion
-
-        [HttpGet]
-        public HttpResponseMessage GetUsersByTeamId([FromUri] int TeamId)
-        {
-            HttpResponseMessage response = null;
-
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    // Query to fetch users and their team
-                    var query = @"
-                SELECT 
-                    u.[Id],
-                    u.[First_Name],
-                    u.[Last_Name],
-                    u.[Email],
-                    u.[DOB],
-                    u.[DOJ],
-                    u.[Phone],
-                    u.[UsersName],
-                    u.[Password],
-                    u.[Gender],
-                    u.[OrganizationId],
-                    u.[RoleId],
-                    u.[DesignationId],
-                    u.[TeamId],
-                    u.[Active],
-                    u.[EmployeeID],
-                    t.[Name] AS TeamName
-                FROM 
-                    [EMP2].[dbo].[Users] u
-                INNER JOIN 
-                    [EMP2].[dbo].[Team] t
-                ON 
-                    u.[TeamId] = t.[Id]
-                WHERE 
-                    u.[TeamId] = @TeamId
-            ";
-
-                    var result = _dapper.GetAll<dynamic>(query, new { TeamId = TeamId });
-
-                    var teamData = result.FirstOrDefault();
-                    if (teamData == null)
-                    {
-                        response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "No Data Found");
-                        return response;
-                    }
-
-                    int teamId = teamData.TeamId;
-                    string teamName = teamData.TeamName;
-
-                    var responseData = new
-                    {
-                        Team = new
-                        {
-                            TeamId = teamId,
-                            TeamName = teamName,
-                            Users = result.Select(u => new
-                            {
-                                UserId = (int)u.Id,
-                                FirstName = (string)u.First_Name,
-                                LastName = (string)u.Last_Name,
-                                Email = (string)u.Email,
-                                DOB = (DateTime)u.DOB,
-                                DOJ = (DateTime)u.DOJ,
-                                Phone = (string)u.Phone,
-                                UsersName = (string)u.UsersName,
-                                Password = (string)u.Password,
-                                Gender = (string)u.Gender,
-                                OrganizationId = (int)u.OrganizationId,
-                                RoleId = (int)u.RoleId,
-                                DesignationId = (int)u.DesignationId,
-                                TeamId = (int)u.TeamId,
-                                Active = (bool)u.Active,
-                                EmployeeID = (string)u.EmployeeID
-                            }).ToList()
-                        }
-                    };
-
-                    response = Request.CreateResponse(HttpStatusCode.OK, responseData);
-                }
-                catch (Exception ex)
-                {
-                    _logErrors.Writelog(ex, "Users", "GetUsersByTeamId");
-                    response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex);
-                }
-            }
-            else
-            {
-                _logErrors.WriteDirectLog("Users", "GetUsersByTeamId - Model State is Not Valid");
-                response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Model State is Not Valid");
-            }
-
-            return response;
-        }
-
-
-
-        [HttpGet]
-        public HttpResponseMessage GetAllUsers()
-        {
-            HttpResponseMessage response = null;
-
-            try
-            {
-                var result = _dapper.GetAll<Users>("SELECT * FROM Users WITH (NOLOCK)");
-
-                if (result != null && result.Any())
-                {
-                    response = Request.CreateResponse(HttpStatusCode.OK, result);
-                }
-                else
-                {
-                    response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "No Data Found");
-                }
-            }
-            catch (Exception ex)
-            {
-                _logErrors.Writelog(ex, "Users", "GetAllUsers");
-                response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex.Message);
-            }
-
-            return response;
-        }
-
-        [HttpGet]
-        public HttpResponseMessage GetUsersByOrganizationId([FromUri] int OrganizationId)
-        {
-            HttpResponseMessage response = null;
-
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    var query = "SELECT * FROM Users WHERE OrganizationId = @OrganizationId AND Active = 1";
-                    var result = _dapper.GetAll<Users>(query, new { OrganizationId = OrganizationId });
-
-                    if (result.Any())
-                    {
-                        response = Request.CreateResponse(HttpStatusCode.OK, result);
-                    }
-                    else
-                    {
-                        response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "No Data Found");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logErrors.Writelog(ex, "Users", "GetUsersByOrganizationId");
-                    response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex);
-                }
-            }
-            else
-            {
-                _logErrors.WriteDirectLog("Users", "GetUsersByOrganizationId - Model State is Not Valid");
-                response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Model State is Not Valid");
-            }
-
-            return response;
-        }
-
-        [HttpPost]
-        public async Task<HttpResponseMessage> InsertUser(Users user)
-        {
-            HttpResponseMessage response = null;
-
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    string query = @"
-                INSERT INTO Users (First_Name, Last_Name, Email, DOB, DOJ, Phone, UsersName, Password, 
-Gender, OrganizationId, RoleId, DesignationId, TeamId, Active, EmployeeID) 
-                VALUES (@First_Name, @Last_Name, @Email, @DOB, @DOJ, @Phone, @UsersName, @Password,
-@Gender, @OrganizationId, @RoleId, @DesignationId, @TeamId, @Active, @EmployeeID)";
-
-                    user.Active = true;
-
-                    var result = await _dapper.ExecuteAsync(query, user);
-                    if (result > 0)
-                    {
-                        response = Request.CreateResponse(HttpStatusCode.Created, user);
-                    }
-                    else
-                    {
-                        response = Request.CreateErrorResponse(HttpStatusCode.InternalServerError, "Could not create user");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logErrors.Writelog(ex, "Users", "InsertUser");
-                    response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex);
-                }
-            }
-            else
-            {
-                _logErrors.WriteDirectLog("Users", "InsertUser - Model State is Not Valid");
-                response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Model State is Not Valid");
-            }
-
-            return response;
-        }
-        [HttpPut]
-        public async Task<HttpResponseMessage> UpdateUser(Users user)
-        {
-            HttpResponseMessage response = null;
-
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    string query = @"
-                UPDATE Users 
-                SET First_Name = @First_Name, Last_Name = @Last_Name, Email = @Email, DOB = @DOB, DOJ = @DOJ, Phone = @Phone, 
-                    UsersName = @UsersName, Password = @Password, Gender = @Gender, OrganizationId = @OrganizationId, 
-                    RoleId = @RoleId, DesignationId = @DesignationId, TeamId = @TeamId, Active = @Active, EmployeeID = @EmployeeID 
-                WHERE Id = @Id";
-
-                    var result = await _dapper.ExecuteAsync(query, user);
-                    if (result > 0)
-                    {
-                        response = Request.CreateResponse(HttpStatusCode.OK, user);
-                    }
-                    else
-                    {
-                        response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "User not found");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logErrors.Writelog(ex, "Users", "UpdateUser");
-                    response = Request.CreateErrorResponse(HttpStatusCode.InternalServerError, "Error updating user");
-                }
-            }
-            else
-            {
-                _logErrors.WriteDirectLog("Users", "UpdateUser - Model State is Not Valid");
-                response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Model State is Not Valid");
-            }
-
-            return response;
-        }
-
-        [HttpDelete]
-        public async Task<HttpResponseMessage> DeleteUser(int id)
-        {
-            HttpResponseMessage response = null;
-
-            try
-            {
-                string query = "DELETE FROM Users WHERE Id = @Id";
-
-                var result = await _dapper.ExecuteAsync(query, new { Id = id });
-
-                if (result > 0)
-                {
-                    response = Request.CreateResponse(HttpStatusCode.OK, $"User with Id {id} deleted successfully");
-                }
-                else
-                {
-                    response = Request.CreateErrorResponse(HttpStatusCode.NotFound, $"User with Id {id} not found");
-                }
-            }
-            catch (Exception ex)
-            {
-                _logErrors.Writelog(ex, "Users", "DeleteUser");
-                response = Request.CreateErrorResponse(HttpStatusCode.InternalServerError, "Error deleting user");
-            }
-
-            return response;
-        }
 
     }
 }
