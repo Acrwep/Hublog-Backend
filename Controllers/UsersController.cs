@@ -532,38 +532,38 @@ namespace EMP.Controllers
         #endregion
 
 
-<<<<<<< Updated upstream
-        [HttpGet]
-        public HttpResponseMessage GetAllUsers()
-        {
-            HttpResponseMessage response = null;
+        //Updated upstream
+        //[HttpGet]
+        //public HttpResponseMessage GetAllUsers()
+        //{
+        //    HttpResponseMessage response = null;
 
-            try
-            {
-                var result = _dapper.GetAll<Users>("SELECT * FROM Users WITH (NOLOCK)");
+        //    try
+        //    {
+        //        var result = _dapper.GetAll<Users>("SELECT * FROM Users WITH (NOLOCK)");
 
-                if (result != null && result.Any())
-                {
-                    response = Request.CreateResponse(HttpStatusCode.OK, result);
-                }
-                else
-                {
-                    response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "No Data Found");
-                }
-            }
-            catch (Exception ex)
-            {
-                _logErrors.Writelog(ex, "Users", "GetAllUsers");
-                response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex.Message);
-            }
+        //        if (result != null && result.Any())
+        //        {
+        //            response = Request.CreateResponse(HttpStatusCode.OK, result);
+        //        }
+        //        else
+        //        {
+        //            response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "No Data Found");
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logErrors.Writelog(ex, "Users", "GetAllUsers");
+        //        response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex.Message);
+        //    }
 
-            return response;
-        }
+        //    return response;
+        //}
 
         #region commented Old GetUserAttendanceDetails
-=======
+        #endregion
+
         #region  Old GetUserAttendanceDetails
->>>>>>> Stashed changes
         //[HttpGet]
         //public HttpResponseMessage GetUserAttendanceDetails([FromUri] int userId)
         //{
