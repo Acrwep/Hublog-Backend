@@ -560,10 +560,7 @@ namespace EMP.Controllers
         //    return response;
         //}
 
-        #region commented Old GetUserAttendanceDetails
-        #endregion
-
-        #region  Old GetUserAttendanceDetails
+        #region  Commented Old GetUserAttendanceDetails
         //[HttpGet]
         //public HttpResponseMessage GetUserAttendanceDetails([FromUri] int userId)
         //{
