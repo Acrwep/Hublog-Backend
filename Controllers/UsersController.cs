@@ -31,6 +31,51 @@ namespace EMP.Controllers
 
         // Ensure this is imported for SQL Server usage
 
+        #region OLD InsertAttendance
+        //[Authorize(Roles = "EMPLOYEE")]
+        //[HttpPost]
+        //public async Task<IHttpActionResult> InsertAttendance(List<UserAttendanceModel> model)
+        //{
+        //    try
+        //    {
+        //        if (!ModelState.IsValid)
+        //        {
+        //            _logErrors.WriteDirectLog("InsertAttendance", "Model State is Not Valid");
+        //            return BadRequest(ModelState);
+        //        }
+
+        //        foreach (var attendanceModel in model)
+        //        {
+        //            var parameters = new DynamicParameters();
+        //            parameters.Add("@UserId", attendanceModel.UserId);
+        //            parameters.Add("@OrganizationId", attendanceModel.OrganizationId);
+        //            parameters.Add("@AttendanceDate", attendanceModel.AttendanceDate);
+        //            parameters.Add("@Start_Time", attendanceModel.Start_Time);
+        //            parameters.Add("@End_Time", attendanceModel.End_Time);
+        //            parameters.Add("@Total_Time", attendanceModel.Total_Time);
+        //            parameters.Add("@Late_Time", attendanceModel.Late_Time);
+        //            parameters.Add("@Status", attendanceModel.Status);
+
+        //            // Execute the stored procedure using Dapper
+        //            var result = await _dapper.ExecuteAsync("SP_InsertAttendance", parameters, CommandType.StoredProcedure);
+
+        //            if (result <= 0)
+        //            {
+        //                // return NotFound(new { Message = "Error: Insertion failed for UserId " + attendanceModel.UserId });
+        //            }
+        //        }
+
+        //        // Assuming all entries were processed successfully
+        //        return Ok("InsertAttendance" + Message.CreateSuccess);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logErrors.Writelog(ex, "Users", "InsertAttendance");
+        //        return InternalServerError(ex);
+        //    }
+        //}
+        #endregion
+
         [Authorize(Roles = "EMPLOYEE")]
         [HttpPost]
         public async Task<IHttpActionResult> InsertAttendance(List<UserAttendanceModel> model)
@@ -51,8 +96,8 @@ namespace EMP.Controllers
                     parameters.Add("@AttendanceDate", attendanceModel.AttendanceDate);
                     parameters.Add("@Start_Time", attendanceModel.Start_Time);
                     parameters.Add("@End_Time", attendanceModel.End_Time);
-                    parameters.Add("@Total_Time", attendanceModel.Total_Time);
-                    parameters.Add("@Late_Time", attendanceModel.Late_Time);
+                    parameters.Add("@Total_Time", null); // Let the stored procedure calculate this
+                    parameters.Add("@Late_Time", null);  // Let the stored procedure calculate this
                     parameters.Add("@Status", attendanceModel.Status);
 
                     // Execute the stored procedure using Dapper
@@ -63,8 +108,6 @@ namespace EMP.Controllers
                         // return NotFound(new { Message = "Error: Insertion failed for UserId " + attendanceModel.UserId });
                     }
                 }
-
-                // Assuming all entries were processed successfully
                 return Ok("InsertAttendance" + Message.CreateSuccess);
             }
             catch (Exception ex)
@@ -73,6 +116,8 @@ namespace EMP.Controllers
                 return InternalServerError(ex);
             }
         }
+
+
         // [Authorize(Roles = "EMPLOYEE")]
         //[HttpPost]
         //public HttpResponseMessage InsertAttendance(List<UserAttendanceModel> model)
