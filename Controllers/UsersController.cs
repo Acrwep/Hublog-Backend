@@ -294,7 +294,6 @@ namespace EMP.Controllers
             {
                 try
                 {
-                    // Query to fetch users and their team
                     var query = @"
                 SELECT 
                     u.[Id],
