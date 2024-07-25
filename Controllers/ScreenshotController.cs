@@ -20,7 +20,7 @@ namespace EMP.Controllers
         [Authorize(Roles = "SUPER_ADMIN,ADMIN")]
         [HttpGet]
         [Route("api/Users/GetUserScreenShots")]
-        public HttpResponseMessage GetUserScreenShots(int userId, int organizationId, int teamId, DateTime date)
+        public HttpResponseMessage GetUserScreenShots(int userId, int organizationId, DateTime date)
         {
             try
             {
@@ -38,15 +38,12 @@ namespace EMP.Controllers
                       ,u.[First_Name]
                       ,u.[Last_Name]
                       ,u.[Email]
-                      ,u.[TeamId]
-                      ,t.[Name] AS TeamName
                   FROM [EMP2].[dbo].[UserScreenShots] uss
                   JOIN [EMP2].[dbo].[Users] u ON uss.[UserId] = u.[Id]
                   JOIN [EMP2].[dbo].[Team] t ON u.[TeamId] = t.[Id]
                   WHERE CAST(uss.[ScreenShotDate] AS DATE) = @Date
                     AND uss.[UserId] = @UserId
-                    AND uss.[OrganizationId] = @OrganizationId
-                    AND u.[TeamId] = @TeamId";
+                    AND uss.[OrganizationId] = @OrganizationId";
 
                     var screenshots = connection.Query<UserScreenShotModels>(
                         query,
@@ -54,7 +51,6 @@ namespace EMP.Controllers
                         {
                             UserId = userId,
                             OrganizationId = organizationId,
-                            TeamId = teamId,
                             Date = date
                         }).ToList();
 
