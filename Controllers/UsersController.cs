@@ -321,49 +321,60 @@ namespace EMP.Controllers
                     u.[TeamId] = t.[Id]
                 WHERE 
                     u.[TeamId] = @TeamId
-            ";
+                    ";
 
                     var result = _dapper.GetAll<dynamic>(query, new { TeamId = TeamId });
 
                     var teamData = result.FirstOrDefault();
                     if (teamData == null)
                     {
-                        response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "No Data Found");
-                        return response;
-                    }
-
-                    int teamId = teamData.TeamId;
-                    string teamName = teamData.TeamName;
-
-                    var responseData = new
-                    {
-                        Team = new
+                        var responseData = new
                         {
-                            TeamId = teamId,
-                            TeamName = teamName,
-                            Users = result.Select(u => new
+                            Team = new
                             {
-                                UserId = (int)u.Id,
-                                FirstName = (string)u.First_Name,
-                                LastName = (string)u.Last_Name,
-                                Email = (string)u.Email,
-                                DOB = (DateTime)u.DOB,
-                                DOJ = (DateTime)u.DOJ,
-                                Phone = (string)u.Phone,
-                                UsersName = (string)u.UsersName,
-                                Password = (string)u.Password,
-                                Gender = (string)u.Gender,
-                                OrganizationId = (int)u.OrganizationId,
-                                RoleId = (int)u.RoleId,
-                                DesignationId = (int)u.DesignationId,
-                                TeamId = (int)u.TeamId,
-                                Active = (bool)u.Active,
-                                EmployeeID = (string)u.EmployeeID
-                            }).ToList()
-                        }
-                    };
+                                TeamId = TeamId,
+                                TeamName = string.Empty,
+                                Users = new List<object>()
+                            }
+                        };
 
-                    response = Request.CreateResponse(HttpStatusCode.OK, responseData);
+                        response = Request.CreateResponse(HttpStatusCode.OK, responseData);
+                    }
+                    else
+                    {
+                        int teamId = teamData.TeamId;
+                        string teamName = teamData.TeamName;
+
+                        var responseData = new
+                        {
+                            Team = new
+                            {
+                                TeamId = teamId,
+                                TeamName = teamName,
+                                Users = result.Select(u => new
+                                {
+                                    UserId = (int)u.Id,
+                                    FirstName = (string)u.First_Name,
+                                    LastName = (string)u.Last_Name,
+                                    Email = (string)u.Email,
+                                    DOB = (DateTime)u.DOB,
+                                    DOJ = (DateTime)u.DOJ,
+                                    Phone = (string)u.Phone,
+                                    UsersName = (string)u.UsersName,
+                                    Password = (string)u.Password,
+                                    Gender = (string)u.Gender,
+                                    OrganizationId = (int)u.OrganizationId,
+                                    RoleId = (int)u.RoleId,
+                                    DesignationId = (int)u.DesignationId,
+                                    TeamId = (int)u.TeamId,
+                                    Active = (bool)u.Active,
+                                    EmployeeID = (string)u.EmployeeID
+                                }).ToList()
+                            }
+                        };
+
+                        response = Request.CreateResponse(HttpStatusCode.OK, responseData);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -379,6 +390,7 @@ namespace EMP.Controllers
 
             return response;
         }
+
         #endregion
 
         #region GetUsersByOrganizationId
