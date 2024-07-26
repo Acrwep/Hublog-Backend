@@ -652,6 +652,7 @@ Gender, OrganizationId, RoleId, DesignationId, TeamId, Active, EmployeeID)
         #endregion
 
         #region GetUserBreakRecordDetails
+        #region GetUserBreakRecordDetails
         [HttpGet]
         public HttpResponseMessage GetUserBreakRecordDetails([FromUri] int userId, [FromUri] DateTime? startDate = null, [FromUri] DateTime? endDate = null)
         {
@@ -669,28 +670,40 @@ Gender, OrganizationId, RoleId, DesignationId, TeamId, Active, EmployeeID)
                     endDate = endOfWeek;
                 }
 
-                // Convert EndDate to include the entire day
                 DateTime endDateTime = endDate.Value.Date.AddDays(1);
 
                 var query = @"
-                     SELECT 
-                        U.First_Name as FirstName,
-                        U.Email,
-                        BM.Name as BreakType,
-                        BE.Start_Time,
-                        BE.End_Time,
-                        BE.Status
-                     FROM Users U
-                        INNER JOIN BreakMaster BM ON U.OrganizationId = BM.OrganizationId
-                        INNER JOIN BreakEntry BE ON BM.OrganizationId = BE.OrganizationId
-                     WHERE U.Id = @UserId
-                        AND (
-                            BE.Start_Time < @EndDateTime
-                            AND BE.End_Time >= @StartDate
-                        )
-                     ";
+                            SELECT 
+                                BE.UserId, 
+                                BE.OrganizationId, 
+                                BE.BreakDate, 
+                                BE.Start_Time, 
+                                BE.End_Time, 
+                                BE.BreakEntryId, 
+                                BE.Status,
+                                BM.Name, 
+                                BM.Active, 
+                                BM.Max_Break_Time, 
+                                U.First_Name as firstName, 
+                                U.Email
+                            FROM BreakEntry BE 
+                            INNER JOIN BreakMaster BM ON BE.BreakEntryId = BM.Id
+                            INNER JOIN Users U ON U.Id = BE.UserId
+                            WHERE BE.UserId = @UserId
+                            AND (
+                                (BE.BreakDate BETWEEN @StartDate AND @EndDate)
+                                OR (BE.Start_Time <= @EndDateTime AND BE.End_Time >= @StartDate)
+                                )
+                                ";
 
-                var parameters = new { UserId = userId, StartDate = startDate.Value, EndDateTime = endDateTime };
+                var parameters = new
+                {
+                    UserId = userId,
+                    StartDate = startDate.Value.Date,
+                    EndDate = endDate.Value.Date,
+                    EndDateTime = endDateTime
+                };
+
                 var result = Task.FromResult(_dapper.GetAll<UserBreakRecordModel>(query, parameters).ToList());
 
                 if (result.IsCompleted)
@@ -719,6 +732,7 @@ Gender, OrganizationId, RoleId, DesignationId, TeamId, Active, EmployeeID)
         }
         #endregion
 
+        #endregion
 
 
         #region Commented
