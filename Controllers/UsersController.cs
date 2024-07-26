@@ -652,7 +652,6 @@ Gender, OrganizationId, RoleId, DesignationId, TeamId, Active, EmployeeID)
         #endregion
 
         #region GetUserBreakRecordDetails
-        #region GetUserBreakRecordDetails
         [HttpGet]
         public HttpResponseMessage GetUserBreakRecordDetails([FromUri] int userId, [FromUri] DateTime? startDate = null, [FromUri] DateTime? endDate = null)
         {
@@ -730,8 +729,6 @@ Gender, OrganizationId, RoleId, DesignationId, TeamId, Active, EmployeeID)
 
             return response;
         }
-        #endregion
-
         #endregion
 
 
