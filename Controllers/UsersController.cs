@@ -680,7 +680,7 @@ Gender, OrganizationId, RoleId, DesignationId, TeamId, Active, EmployeeID)
                                 BE.End_Time, 
                                 BE.BreakEntryId, 
                                 BE.Status,
-                                BM.Name, 
+                                BM.Name as BreakType, 
                                 BM.Active, 
                                 BM.Max_Break_Time, 
                                 U.First_Name as firstName, 
