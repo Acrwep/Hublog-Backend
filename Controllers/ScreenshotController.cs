@@ -43,9 +43,9 @@ namespace EMP.Controllers
                       ,u.[First_Name]
                       ,u.[Last_Name]
                       ,u.[Email]
-                  FROM [EMP2].[dbo].[UserScreenShots] uss
-                  JOIN [EMP2].[dbo].[Users] u ON uss.[UserId] = u.[Id]
-                  JOIN [EMP2].[dbo].[Team] t ON u.[TeamId] = t.[Id]
+                  FROM [dbo].[UserScreenShots] uss
+                  JOIN [dbo].[Users] u ON uss.[UserId] = u.[Id]
+                  JOIN [dbo].[Team] t ON u.[TeamId] = t.[Id]
                   WHERE CAST(uss.[ScreenShotDate] AS DATE) = @Date
                     AND uss.[UserId] = @UserId
                     AND uss.[OrganizationId] = @OrganizationId";
@@ -66,6 +66,36 @@ namespace EMP.Controllers
             {
                 _logErrors.Writelog(ex, "User", "GetUserScreenShots");
                 return Request.CreateResponse(HttpStatusCode.NotFound, ex.InnerException?.Message ?? ex.Message);
+            }
+        }
+        #endregion
+
+        #region GetAvailableIntervals
+        [Authorize(Roles = "SUPER_ADMIN,ADMIN")]
+        [HttpGet]
+        [Route("api/Screenshot/GetAvailableIntervals")]
+        public HttpResponseMessage GetAvailableIntervals()
+        {
+            try
+            {
+                string connectionString = GetConnectionString();
+                using (var connection = new SqlConnection(connectionString))
+                {
+                    var query = "SELECT " +
+                        "           SI.IntervalInMilliseconds," +
+                        "           SI.SelectedIntervalId," +
+                        "           SI.Description" +
+                        "       FROM ScreenshotIntervals SI" +
+                        "       INNER JOIN ScreenshotSettings SS ON SI.Id = ";
+                    var intervals = connection.Query<ScreenshotIntervalModel>(query).ToList();
+
+                    return Request.CreateResponse(HttpStatusCode.OK, intervals);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logErrors.Writelog(ex, "Screenshot", "GetAvailableIntervals");
+                return Request.CreateResponse(HttpStatusCode.InternalServerError, ex.InnerException?.Message ?? ex.Message);
             }
         }
         #endregion

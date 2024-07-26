@@ -267,6 +267,13 @@ namespace EMP.Models.Master
         public int DaysLeave { get; set; }
     }
 
+    public class ScreenshotIntervalModel
+    {
+        public int IntervalInMilliseconds { get; set; }
+        public string Description { get; set; }
+        public int SelectedIntervalId { get; set; } 
+    }
+
     //public class AttendanceDetailModel
     //{
     //    public DateTime AttendanceDate { get; set; }

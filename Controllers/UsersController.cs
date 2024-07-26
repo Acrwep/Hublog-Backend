@@ -346,9 +346,9 @@ namespace EMP.Controllers
                     u.[EmployeeID],
                     t.[Name] AS TeamName
                 FROM 
-                    [EMP2].[dbo].[Users] u
+                    [dbo].[Users] u
                 INNER JOIN 
-                    [EMP2].[dbo].[Team] t
+                    [dbo].[Team] t
                 ON 
                     u.[TeamId] = t.[Id]
                 WHERE 
