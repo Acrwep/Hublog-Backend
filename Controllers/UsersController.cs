@@ -55,8 +55,8 @@ namespace EMP.Controllers
                     parameters.Add("@AttendanceDate", attendanceModel.AttendanceDate);
                     parameters.Add("@Start_Time", attendanceModel.Start_Time);
                     parameters.Add("@End_Time", attendanceModel.End_Time);
-                    parameters.Add("@Total_Time", null); // Let the stored procedure calculate this
-                    parameters.Add("@Late_Time", null);  // Let the stored procedure calculate this
+                    parameters.Add("@Total_Time", null);
+                    parameters.Add("@Late_Time", null);
                     parameters.Add("@Status", attendanceModel.Status);
 
                     // Execute the stored procedure using Dapper
@@ -672,34 +672,34 @@ Gender, OrganizationId, RoleId, DesignationId, TeamId, Active, EmployeeID)
                 DateTime endDateTime = endDate.Value.Date.AddDays(1);
 
                 var query = @"
-                            SELECT 
-                                BE.UserId, 
-                                BE.OrganizationId, 
-                                BE.BreakDate, 
-                                BE.Start_Time, 
-                                BE.End_Time, 
-                                BE.BreakEntryId, 
-                                BE.Status,
-                                BM.Name as BreakType, 
-                                BM.Active, 
-                                BM.Max_Break_Time, 
-                                U.First_Name as firstName, 
-                                U.Email
-                            FROM BreakEntry BE 
-                            INNER JOIN BreakMaster BM ON BE.BreakEntryId = BM.Id
-                            INNER JOIN Users U ON U.Id = BE.UserId
-                            WHERE BE.UserId = @UserId
-                            AND (
-                                (BE.BreakDate BETWEEN @StartDate AND @EndDate)
-                                OR (BE.Start_Time <= @EndDateTime AND BE.End_Time >= @StartDate)
-                                )
-                                ";
+                    SELECT 
+                        BE.UserId, 
+                        BE.OrganizationId, 
+                        BE.BreakDate, 
+                        BE.Start_Time, 
+                        BE.End_Time, 
+                        BE.BreakEntryId, 
+                        BE.Status,
+                        BM.Name as BreakType, 
+                        BM.Active, 
+                        BM.Max_Break_Time, 
+                        U.First_Name as firstName, 
+                        U.Email
+                    FROM BreakEntry BE 
+                    INNER JOIN BreakMaster BM ON BE.BreakEntryId = BM.Id
+                    INNER JOIN Users U ON U.Id = BE.UserId
+                    WHERE BE.UserId = @UserId
+                    AND (
+                        (BE.BreakDate BETWEEN @StartDate AND @EndDate)
+                        OR (BE.Start_Time <= @EndDateTime AND BE.End_Time >= @StartDate)
+                    )
+                    ";
 
                 var parameters = new
                 {
                     UserId = userId,
                     StartDate = startDate.Value.Date,
-                    EndDate = endDate.Value.Date,
+                    EndDate = endDate.Value.Date.AddDays(1).AddTicks(-1), // Adjust to include end of the day
                     EndDateTime = endDateTime
                 };
 
@@ -729,6 +729,7 @@ Gender, OrganizationId, RoleId, DesignationId, TeamId, Active, EmployeeID)
 
             return response;
         }
+
         #endregion
 
 

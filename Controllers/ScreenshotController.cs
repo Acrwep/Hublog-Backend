@@ -71,7 +71,7 @@ namespace EMP.Controllers
         #endregion
 
         #region GetAvailableIntervals
-        [Authorize(Roles = "SUPER_ADMIN,ADMIN")]
+        //[Authorize(Roles = "SUPER_ADMIN,ADMIN")]
         [HttpGet]
         [Route("api/Screenshot/GetAvailableIntervals")]
         public HttpResponseMessage GetAvailableIntervals()
@@ -81,12 +81,12 @@ namespace EMP.Controllers
                 string connectionString = GetConnectionString();
                 using (var connection = new SqlConnection(connectionString))
                 {
-                    var query = "SELECT " +
-                        "           SI.IntervalInMilliseconds," +
-                        "           SI.SelectedIntervalId," +
-                        "           SI.Description" +
-                        "       FROM ScreenshotIntervals SI" +
-                        "       INNER JOIN ScreenshotSettings SS ON SI.Id = ";
+                    var query = @"SELECT
+                                    SI.IntervalInMilliseconds,
+                                    SI.Description,
+                                    SS.SelectedIntervalId
+                                FROM ScreenshotIntervals SI
+                                INNER JOIN ScreenshotSettings SS ON SI.Id = SS.SelectedIntervalId";
                     var intervals = connection.Query<ScreenshotIntervalModel>(query).ToList();
 
                     return Request.CreateResponse(HttpStatusCode.OK, intervals);
@@ -100,5 +100,77 @@ namespace EMP.Controllers
         }
         #endregion
 
+        #region SetSelectedInterval
+        //[Authorize(Roles = "SUPER_ADMIN,ADMIN")]
+        [HttpPost]
+        [Route("api/Screenshot/SetSelectedInterval")]
+        public HttpResponseMessage SetSelectedInterval([FromBody] int intervalId)
+        {
+            try
+            {
+                if (intervalId <= 0)
+                {
+                    return Request.CreateResponse(HttpStatusCode.BadRequest, "Invalid interval ID.");
+                }
+
+                string connectionString = GetConnectionString();
+                using (var connection = new SqlConnection(connectionString))
+                {
+                    connection.Open();
+
+                    using (var transaction = connection.BeginTransaction())
+                    {
+                        var query = @"UPDATE ScreenshotSettings SET SelectedIntervalId = @IntervalId WHERE Id = 1";
+                        var rowsAffected = connection.Execute(query, new { IntervalId = intervalId }, transaction);
+
+                        if (rowsAffected > 0)
+                        {
+                            transaction.Commit();
+                            return Request.CreateResponse(HttpStatusCode.OK, "Selected interval updated successfully.");
+                        }
+                        else
+                        {
+                            transaction.Rollback();
+                            return Request.CreateResponse(HttpStatusCode.NotFound, "Setting not found.");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logErrors.Writelog(ex, "Screenshot", "SetSelectedInterval");
+                return Request.CreateResponse(HttpStatusCode.InternalServerError, ex.Message);
+            }
+        }
+        #endregion
+
+
+
+        #region GetSelectedInterval
+        [HttpGet]
+        [Route("api/Screenshot/GetSelectedInterval")]
+        public HttpResponseMessage GetSelectedInterval()
+        {
+            try
+            {
+                string connectionString = GetConnectionString();
+                using (var connection = new SqlConnection(connectionString))
+                {
+                    var query = @"SELECT SI.IntervalInMilliseconds, SS.Id, SS.SelectedIntervalId
+                                    FROM ScreenshotIntervals SI
+                                    INNER JOIN ScreenshotSettings SS ON SI.Id = SS.SelectedIntervalId";
+                    var intervals = connection.Query<ScreenshotIntervalModel>(query).ToList();
+
+                    return Request.CreateResponse(HttpStatusCode.OK, intervals);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logErrors.Writelog(ex, "Screenshot", "GetSelectedInterval");
+                return Request.CreateResponse(HttpStatusCode.InternalServerError, ex.InnerException?.Message ?? ex.Message);
+            }
+        }
     }
+    #endregion
 }
+
