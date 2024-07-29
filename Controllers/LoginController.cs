@@ -21,10 +21,10 @@ namespace EMP.AppControllers.key
         private readonly Dapperr _dapper = new Dapperr();
         private readonly LogErrors _logErrors = new LogErrors();
 
-
+        #region  User Login
         [AllowAnonymous]
         [HttpPost]
-        #region Login
+
         public HttpResponseMessage UserLogin(LoginModels model)
         {
             HttpResponseMessage response = null;
@@ -65,6 +65,7 @@ namespace EMP.AppControllers.key
         }
         #endregion
 
+        #region UserLogout
         [AllowAnonymous]
         [HttpPost]
         public HttpResponseMessage UserLogout(LoginModels model)
@@ -105,7 +106,9 @@ namespace EMP.AppControllers.key
             }
             return response;
         }
+        #endregion
 
+        #region AdminLogin
         [AllowAnonymous]
         [HttpPost]
         public HttpResponseMessage AdminLogin(LoginModels model)
@@ -151,6 +154,7 @@ namespace EMP.AppControllers.key
             }
             return response;
         }
+        #endregion
 
         //[AllowAnonymous]
         //[HttpPost]
@@ -210,6 +214,85 @@ namespace EMP.AppControllers.key
         //    }
         //    return response;
         //}
+
+        #region Login
+        [AllowAnonymous]
+        [HttpPost]
+        public HttpResponseMessage Login(LoginModels model)
+        {
+            HttpResponseMessage response = null;
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    // Updated query to include role details
+                    var result = Task.FromResult(_dapper.GetAll<Users>("select A.*, B.Name as RoleName, B.AccessLevel, " +
+                        "C.Name as DesignationName, D.Name as TeamName from Users A With(NoLock) " +
+                        "inner join Role B With(NoLock) on A.RoleId = B.Id " +
+                        "inner join Designation C With(NoLock) on A.DesignationId = C.Id " +
+                        "inner join Team D With(NoLock) on A.TeamId = D.Id " +
+                        "where A.Email = @Email and A.Password = @Password and A.Active = 1",
+                        new { Email = model.UserName, Password = model.Password }).ToList());
+
+                    if (result.IsCompleted)
+                    {
+                        if (result.Result.Count != 0)
+                        {
+                            var user = result.Result[0];
+                            var token = CommonFunctiton.CreateToken(user);
+
+                            // Return the response with user details and token
+                            response = Request.CreateResponse(new
+                            {
+                                user = new
+                                {
+                                    user.Id,
+                                    user.First_Name,
+                                    user.Last_Name,
+                                    user.Email,
+                                    user.DOB,
+                                    user.DOJ,
+                                    user.Phone,
+                                    user.UsersName,
+                                    user.Gender,
+                                    user.OrganizationId,
+                                    user.RoleId,
+                                    user.DesignationId,
+                                    user.TeamId,
+                                    user.Active,
+                                    RoleName = user.RoleName,
+                                    AccessLevel = user.AccessLevel,
+                                    DesignationName = user.DesignationName,
+                                    TeamName = user.TeamName,
+                                    EmployeeID = user.EmployeeID
+                                },
+                                token = token
+                            });
+                        }
+                        else
+                        {
+                            response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "Invalid UserName or Password");
+                        }
+                    }
+                    else
+                    {
+                        response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "Invalid UserName or Password");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logErrors.Writelog(ex, "Login", "UserLogin");
+                    response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex.ToString());
+                }
+            }
+            else
+            {
+                _logErrors.WriteDirectLog("Login", "UserLogin" + "Model State is Not Valid");
+                response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Model State is Not Valid");
+            }
+            return response;
+        }
+        #endregion
 
     }
 }

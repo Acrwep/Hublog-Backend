@@ -22,7 +22,7 @@ namespace EMP.Controllers
 
         //USERS,EMPLOYEE
         #region  GetUserScreenShots
-        [Authorize(Roles = "SUPER_ADMIN,ADMIN")]
+        //[Authorize(Roles = "SUPER_ADMIN,ADMIN")]
         [HttpGet]
         [Route("api/Users/GetUserScreenShots")]
         public HttpResponseMessage GetUserScreenShots(int userId, int organizationId, DateTime date)
