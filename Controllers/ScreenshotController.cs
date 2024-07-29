@@ -38,7 +38,6 @@ namespace EMP.Controllers
                       ,uss.[OrganizationId]
                       ,uss.[ScreenShotDate]
                       ,uss.[FileName]
-                      ,uss.[FilePath]
                       ,uss.[ImageData]
                       ,u.[First_Name]
                       ,u.[Last_Name]

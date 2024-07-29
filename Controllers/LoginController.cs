@@ -152,6 +152,64 @@ namespace EMP.AppControllers.key
             return response;
         }
 
+        //[AllowAnonymous]
+        //[HttpPost]
+        //public HttpResponseMessage UserLogin(LoginModels model)
+        //{
+        //    HttpResponseMessage response = null;
+        //    if (ModelState.IsValid)
+        //    {
+        //        try
+        //        {
+        //            var query = @"
+        //        SELECT A.*, B.Name as RoleName, B.AccessLevel,
+        //               C.Name as DesignationName, D.Name as TeamName
+        //        FROM Users A WITH (NOLOCK)
+        //        INNER JOIN Role B WITH (NOLOCK) ON A.RoleId = B.Id
+        //        INNER JOIN Designation C WITH (NOLOCK) ON A.DesignationId = C.Id
+        //        INNER JOIN Team D WITH (NOLOCK) ON A.TeamId = D.Id
+        //        WHERE A.Email = @Email
+        //          AND A.Password = @Password
+        //          AND A.Active = 1";
+
+        //            var parameters = new
+        //            {
+        //                Email = model.UserName,
+        //                Password = model.Password
+        //            };
+
+        //            var result = Task.FromResult(_dapper.GetAll<Users>(query, parameters).ToList());
+
+        //            if (result.IsCompleted)
+        //            {
+        //                if (result.Result.Count != 0)
+        //                {
+        //                    var token = CommonFunctiton.CreateToken(result.Result[0]);
+        //                    response = Request.CreateResponse(new { user = result.Result[0], token = token });
+        //                }
+        //                else
+        //                {
+        //                    response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "Invalid UserName or Password");
+        //                }
+        //            }
+        //            else
+        //            {
+        //                response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "Invalid UserName or Password");
+        //            }
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            _logErrors.Writelog(ex, "Login", "UserLogin");
+        //            response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex.ToString());
+        //        }
+        //    }
+        //    else
+        //    {
+        //        _logErrors.WriteDirectLog("Login", "UserLogin: Model State is Not Valid");
+        //        response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Model State is Not Valid");
+        //    }
+        //    return response;
+        //}
 
     }
 }
