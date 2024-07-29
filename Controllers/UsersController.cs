@@ -160,19 +160,6 @@ namespace EMP.Controllers
                         var imageName = (SType == "ScreenShots") ? fileName.Replace(fileExtension, "") : Guid.NewGuid().ToString();
                         var newFileName = imageName + fileExtension;
 
-                        // Define the path to save the file
-                        string folderPath = System.Web.Hosting.HostingEnvironment.MapPath("~/ScreenShots/");
-                        if (!Directory.Exists(folderPath))
-                        {
-                            Directory.CreateDirectory(folderPath);
-                        }
-
-                        var completeFilePath = Path.Combine(folderPath, newFileName);
-
-                        // Save the file locally
-                        pic.SaveAs(completeFilePath);
-
-                        // Read the image data
                         byte[] imageData;
                         using (var ms = new MemoryStream())
                         {
@@ -185,16 +172,13 @@ namespace EMP.Controllers
                             return Request.CreateResponse(HttpStatusCode.BadRequest, "Image data is empty.");
                         }
 
-                        // Prepare parameters for stored procedure
                         var parameters = new DynamicParameters();
                         parameters.Add("@UserId", UId);
                         parameters.Add("@OrganizationId", OId);
                         parameters.Add("@ScreenShotDate", SDate);
                         parameters.Add("@FileName", newFileName);
-                        parameters.Add("@FilePath", completeFilePath);
                         parameters.Add("@ImageData", imageData);
 
-                        // Execute the stored procedure
                         string connectionString = GetConnectionString();
                         using (var connection = new SqlConnection(connectionString))
                         {
@@ -202,7 +186,7 @@ namespace EMP.Controllers
                             connection.Execute("SP_InsertScreenShot", parameters, commandType: CommandType.StoredProcedure);
                         }
 
-                        return Request.CreateResponse(HttpStatusCode.OK, completeFilePath);
+                        return Request.CreateResponse(HttpStatusCode.OK, "Upload successful.");
                     }
                     else
                     {
@@ -220,6 +204,8 @@ namespace EMP.Controllers
                 return Request.CreateResponse(HttpStatusCode.InternalServerError, ex.Message);
             }
         }
+
+
         #endregion
 
 
