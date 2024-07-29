@@ -314,5 +314,110 @@ namespace EMP.Controllers
             return response;
         }
 
+        [HttpPost]
+        public async Task<HttpResponseMessage> InsertBreakMaster(BreakMaster breakMaster)
+        {
+            HttpResponseMessage response = null;
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    string query = @"
+            INSERT INTO BreakMaster (Name, Max_Break_Time, Active, OrganizationId)
+            VALUES (@Name, @Max_Break_Time, @Active, @OrganizationId)";
+
+                    var result = await _dapper.ExecuteAsync(query, breakMaster);
+                    if (result > 0)
+                    {
+                        response = Request.CreateResponse(HttpStatusCode.Created, breakMaster);
+                    }
+                    else
+                    {
+                        response = Request.CreateErrorResponse(HttpStatusCode.InternalServerError, "Could not create breakMaster");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logErrors.Writelog(ex, "BreakMaster", "InsertBreakMaster");
+                    response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex);
+                }
+            }
+            else
+            {
+                _logErrors.WriteDirectLog("BreakMaster", "InsertBreakMaster - Model State is Not Valid");
+                response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Model State is Not Valid");
+            }
+
+            return response;
+        }
+
+        [HttpPut]
+        public async Task<HttpResponseMessage> UpdateBreakMaster(BreakMaster breakMaster)
+        {
+            HttpResponseMessage response = null;
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    string query = @"
+            UPDATE BreakMaster 
+            SET Name = @Name, Max_Break_Time = @Max_Break_Time, Active = @Active, OrganizationId = @OrganizationId
+            WHERE Id = @Id";
+
+                    var result = await _dapper.ExecuteAsync(query, breakMaster);
+                    if (result > 0)
+                    {
+                        response = Request.CreateResponse(HttpStatusCode.OK, breakMaster);
+                    }
+                    else
+                    {
+                        response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "BreakMaster not found");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logErrors.Writelog(ex, "BreakMaster", "UpdateBreakMaster");
+                    response = Request.CreateErrorResponse(HttpStatusCode.InternalServerError, "Error updating breakMaster");
+                }
+            }
+            else
+            {
+                _logErrors.WriteDirectLog("BreakMaster", "UpdateBreakMaster - Model State is Not Valid");
+                response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Model State is Not Valid");
+            }
+
+            return response;
+        }
+
+        [HttpDelete]
+        public async Task<HttpResponseMessage> DeleteBreakMaster(int id)
+        {
+            HttpResponseMessage response = null;
+
+            try
+            {
+                string query = "DELETE FROM BreakMaster WHERE Id = @Id";
+
+                var result = await _dapper.ExecuteAsync(query, new { Id = id });
+
+                if (result > 0)
+                {
+                    response = Request.CreateResponse(HttpStatusCode.OK, $"BreakMaster with Id {id} deleted successfully");
+                }
+                else
+                {
+                    response = Request.CreateErrorResponse(HttpStatusCode.NotFound, $"BreakMaster with Id {id} not found");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logErrors.Writelog(ex, "BreakMaster", "DeleteBreakMaster");
+                response = Request.CreateErrorResponse(HttpStatusCode.InternalServerError, "Error deleting breakMaster");
+            }
+
+            return response;
+        }
     }
 }

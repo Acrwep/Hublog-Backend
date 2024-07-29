@@ -222,6 +222,9 @@ namespace EMP.Controllers
         }
         #endregion
 
+
+
+
         #region GetUserAttendanceDetails
         [HttpGet]
         public HttpResponseMessage GetUserAttendanceDetails([FromUri] int userId, [FromUri] DateTime? startDate = null, [FromUri] DateTime? endDate = null)

@@ -170,7 +170,39 @@ namespace EMP.Controllers
                 return Request.CreateResponse(HttpStatusCode.InternalServerError, ex.InnerException?.Message ?? ex.Message);
             }
         }
+        #endregion
+
+        [HttpDelete]
+        [Route("api/screenshots/cleanup")]
+        public async Task<HttpResponseMessage> DeleteOldScreenshots()
+        {
+            HttpResponseMessage response = null;
+
+            try
+            {
+                string query = @"
+            DELETE FROM UserScreenShots
+            WHERE ScreenShotDate < DATEADD(day, -1, GETDATE())";
+
+                var result = await _dapper.ExecuteAsync(query);
+
+                if (result > 0)
+                {
+                    response = Request.CreateResponse(HttpStatusCode.OK, "Old screenshots deleted successfully");
+                }
+                else
+                {
+                    response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "No old screenshots found to delete");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logErrors.Writelog(ex, "UserScreenShots", "DeleteOldScreenshots");
+                response = Request.CreateErrorResponse(HttpStatusCode.InternalServerError, "Error deleting old screenshots");
+            }
+
+            return response;
+        }
     }
-    #endregion
 }
 
