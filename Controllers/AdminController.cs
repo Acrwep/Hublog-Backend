@@ -314,6 +314,37 @@ namespace EMP.Controllers
             return response;
         }
 
+        [HttpGet]
+        public async Task<HttpResponseMessage> GetAllBreakMasters()
+        {
+            HttpResponseMessage response = null;
+
+            try
+            {
+                string query = "SELECT * FROM BreakMaster";
+
+                var result = await _dapper.GetAllAsync<BreakMaster>(query);
+
+                if (result != null && result.Any())
+                {
+                    response = Request.CreateResponse(HttpStatusCode.OK, result);
+                }
+                else
+                {
+                    response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "No BreakMaster records found");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logErrors.Writelog(ex, "BreakMaster", "GetAllBreakMasters");
+                response = Request.CreateErrorResponse(HttpStatusCode.InternalServerError, "Error retrieving break master records");
+            }
+
+            return response;
+        }
+
+
+
         [HttpPost]
         public async Task<HttpResponseMessage> InsertBreakMaster(BreakMaster breakMaster)
         {

@@ -52,6 +52,12 @@ namespace EMP
             return await GetDbconnection().ExecuteAsync(query, parameters, commandType: commandType);
         }
 
+        public async Task<List<T>> GetAllAsync<T>(string query, object parameters = null)
+        {
+            var result = await GetDbconnection().QueryAsync<T>(query, parameters);
+            return result.ToList();
+        }
+
         public async Task<T> GetAsync<T>(string query, object parameters = null, CommandType commandType = CommandType.Text)
         {
             var result = await GetDbconnection().QueryAsync<T>(query, parameters, commandType: commandType);
