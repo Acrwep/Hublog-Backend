@@ -16,7 +16,8 @@ using System.Web.Http;
 using System.Configuration;
 
 
-using EMP.Models; // Adjust the namespace as per your project structure
+using EMP.Models;
+using System.Security.Claims; // Adjust the namespace as per your project structure
 
 
 
@@ -207,9 +208,6 @@ namespace EMP.Controllers
 
 
         #endregion
-
-
-
 
         #region GetUserAttendanceDetails
         [HttpGet]
@@ -453,6 +451,35 @@ namespace EMP.Controllers
         #endregion
 
         #region  User CRUD OPS
+        #region Commented m GetAllUsers
+        //[HttpGet]
+        //public HttpResponseMessage GetAllUsers()
+        //{
+        //    HttpResponseMessage response = null;
+
+        //    try
+        //    {
+        //        var result = _dapper.GetAll<Users>("SELECT * FROM Users WITH (NOLOCK)");
+
+        //        if (result != null && result.Any())
+        //        {
+        //            response = Request.CreateResponse(HttpStatusCode.OK, result);
+        //        }
+        //        else
+        //        {
+        //            response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "No Data Found");
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logErrors.Writelog(ex, "Users", "GetAllUsers");
+        //        response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex.Message);
+        //    }
+
+        //    return response;
+        //}
+        #endregion
+
         [HttpGet]
         public HttpResponseMessage GetAllUsers()
         {
@@ -460,11 +487,15 @@ namespace EMP.Controllers
 
             try
             {
+                var claimsPrincipal = User as ClaimsPrincipal;
+                var loggedInUserEmail = claimsPrincipal?.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+
                 var result = _dapper.GetAll<Users>("SELECT * FROM Users WITH (NOLOCK)");
 
                 if (result != null && result.Any())
                 {
-                    response = Request.CreateResponse(HttpStatusCode.OK, result);
+                    var sortedResult = result.OrderByDescending(u => u.Email == loggedInUserEmail).ToList();
+                    response = Request.CreateResponse(HttpStatusCode.OK, sortedResult);
                 }
                 else
                 {
@@ -479,6 +510,9 @@ namespace EMP.Controllers
 
             return response;
         }
+
+
+
 
         [HttpPost]
         public async Task<HttpResponseMessage> InsertUser(Users user)
