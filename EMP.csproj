@@ -286,6 +286,7 @@
     <Compile Include="Identity\CustomJwtFormat.cs" />
     <Compile Include="Identity\CustomOAuthProvider.cs" />
     <Compile Include="Models\Master\LoginModels.cs" />
+    <Compile Include="Models\ScreenshotCleanupJob.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Startup.cs" />
   </ItemGroup>
