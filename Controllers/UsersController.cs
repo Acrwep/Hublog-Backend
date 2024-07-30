@@ -261,6 +261,8 @@ namespace EMP.Controllers
 
                     foreach (var date in allDates)
                     {
+                        if (date.DayOfWeek == DayOfWeek.Sunday) continue;
+
                         var record = records.FirstOrDefault(r => r.AttendanceDate.Date == date.Date);
 
                         if (record != null)
@@ -278,7 +280,6 @@ namespace EMP.Controllers
                         DaysPresent = daysPresent,
                         DaysLeave = daysAbsent
                     };
-
 
                     var responseModel = new
                     {
@@ -301,6 +302,7 @@ namespace EMP.Controllers
 
             return response;
         }
+
         #endregion
 
         #region  GetUsersByTeamId
