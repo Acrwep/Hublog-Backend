@@ -14,10 +14,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Http;
 using System.Configuration;
-
-
-using EMP.Models;
-using System.Security.Claims; // Adjust the namespace as per your project structure
+using System.Security.Claims;
 
 
 
@@ -512,9 +509,6 @@ namespace EMP.Controllers
 
             return response;
         }
-
-
-
 
         [HttpPost]
         public async Task<HttpResponseMessage> InsertUser(Users user)
