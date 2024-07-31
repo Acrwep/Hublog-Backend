@@ -1,5 +1,6 @@
 ﻿
 
+using System.Configuration;
 using System.Data.SqlClient;
 
 namespace EMP.Models
@@ -8,7 +9,8 @@ namespace EMP.Models
     {
         public void DeleteOldScreenshots()
         {
-            using (var connection = new SqlConnection("YourConnectionString"))
+            var connectionstring = ConfigurationManager.ConnectionStrings["EMBContext"].ConnectionString;
+            using (var connection = new SqlConnection(connectionstring))
             {
                 connection.Open();
                 string query = @"
