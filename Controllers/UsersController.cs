@@ -623,7 +623,7 @@ Gender, OrganizationId, RoleId, DesignationId, TeamId, Active, EmployeeID)
         #endregion
 
         #region GetAvailableBreak
-        [Authorize(Roles = "EMPLOYEE")]
+        //[Authorize(Roles = "EMPLOYEE")]
         [HttpPost]
         public HttpResponseMessage GetAvailableBreak(GetModels obj)
         {
@@ -750,6 +750,37 @@ Gender, OrganizationId, RoleId, DesignationId, TeamId, Active, EmployeeID)
         }
 
         #endregion
+
+
+        [HttpGet]
+        public async Task<HttpResponseMessage> GetBreakMasterById(int id)
+        {
+            HttpResponseMessage response = null;
+
+            try
+            {
+                var query = "SELECT * FROM BreakMaster WHERE Id = @Id";
+                var parameters = new { Id = id };
+                var result = await _dapper.GetAsync<BreakMaster>(query, parameters);
+
+                if (result != null)
+                {
+                    response = Request.CreateResponse(HttpStatusCode.OK, result);
+                }
+                else
+                {
+                    response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "BreakMaster record not found");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logErrors.Writelog(ex, "BreakMaster", "GetBreakMasterById");
+                response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex.Message);
+            }
+
+            return response;
+        }
+
 
 
         #region Commented
