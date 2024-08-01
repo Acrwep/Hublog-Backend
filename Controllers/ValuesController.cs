@@ -64,7 +64,6 @@ namespace EMP.Controllers
                     FileName = Path.GetFileName(filePath)
                 };
                 result.Content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
-
                 return result;
             }
             catch (Exception ex)
