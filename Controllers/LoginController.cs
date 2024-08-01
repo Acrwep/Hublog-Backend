@@ -65,34 +65,29 @@ namespace EMP.AppControllers.key
         //}
         #endregion
 
+
         [AllowAnonymous]
         [HttpPost]
         public HttpResponseMessage UserLogin(LoginModels model)
         {
-            HttpResponseMessage response = null;
+            HttpResponseMessage response;
             if (ModelState.IsValid)
             {
                 try
                 {
-                    var result = Task.FromResult(_dapper.GetAll<Users>(
-                        "select A.*,B.Name as RoleName,B.AccessLevel,C.Name as DesignationName,D.Name as TeamName " +
-                        "from Users A With(NoLock) inner join Role B With(NoLock) on A.RoleId=B.Id " +
-                        "inner join Designation C With(NoLock) on A.DesignationId=C.Id " +
-                        "inner join Team D With(NoLock) on A.TeamId=D.Id " +
-                        "where B.AccessLevel=2 and A.Email='" + model.UserName + "' and A.Password='" + model.Password + "' and A.Active=1"
-                    ).ToList());
+                    string query = "SELECT A.*, B.Name AS RoleName, B.AccessLevel, C.Name AS DesignationName, D.Name AS TeamName " +
+                                   "FROM Users A WITH (NOLOCK) " +
+                                   "INNER JOIN Role B WITH (NOLOCK) ON A.RoleId = B.Id " +
+                                   "INNER JOIN Designation C WITH (NOLOCK) ON A.DesignationId = C.Id " +
+                                   "INNER JOIN Team D WITH (NOLOCK) ON A.TeamId = D.Id " +
+                                   "WHERE B.AccessLevel = 2 AND A.Email = @UserName AND A.Password = @Password AND A.Active = 1";
+                    var parameters = new { UserName = model.UserName, Password = model.Password };
+                    var result = _dapper.GetAll<Users>(query, parameters).ToList();
 
-                    if (result.IsCompleted)
+                    if (result.Any())
                     {
-                        if (result.Result.Count != 0)
-                        {
-                            var token = CommonFunctiton.CreateToken(result.Result[0]);
-                            response = Request.CreateResponse(HttpStatusCode.OK, new { user = result.Result[0], token = token });
-                        }
-                        else
-                        {
-                            response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "Invalid UserName & Password");
-                        }
+                        var token = CommonFunctiton.CreateToken(result[0]);
+                        response = Request.CreateResponse(HttpStatusCode.OK, new { user = result[0], token });
                     }
                     else
                     {
@@ -102,17 +97,16 @@ namespace EMP.AppControllers.key
                 catch (Exception ex)
                 {
                     _logErrors.Writelog(ex, "Login", "UserLogin");
-                    response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex.ToString());
+                    response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "An error occurred: " + ex.Message);
                 }
             }
             else
             {
-                _logErrors.WriteDirectLog("Login", "UserLogin: Model State is Not Valid");
+                _logErrors.WriteDirectLog("Login", "UserLogin Model State is Not Valid");
                 response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Model State is Not Valid");
             }
             return response;
         }
-
 
         #region UserLogout
         [AllowAnonymous]
@@ -205,64 +199,6 @@ namespace EMP.AppControllers.key
         }
         #endregion
 
-        //[AllowAnonymous]
-        //[HttpPost]
-        //public HttpResponseMessage UserLogin(LoginModels model)
-        //{
-        //    HttpResponseMessage response = null;
-        //    if (ModelState.IsValid)
-        //    {
-        //        try
-        //        {
-        //            var query = @"
-        //        SELECT A.*, B.Name as RoleName, B.AccessLevel,
-        //               C.Name as DesignationName, D.Name as TeamName
-        //        FROM Users A WITH (NOLOCK)
-        //        INNER JOIN Role B WITH (NOLOCK) ON A.RoleId = B.Id
-        //        INNER JOIN Designation C WITH (NOLOCK) ON A.DesignationId = C.Id
-        //        INNER JOIN Team D WITH (NOLOCK) ON A.TeamId = D.Id
-        //        WHERE A.Email = @Email
-        //          AND A.Password = @Password
-        //          AND A.Active = 1";
-
-        //            var parameters = new
-        //            {
-        //                Email = model.UserName,
-        //                Password = model.Password
-        //            };
-
-        //            var result = Task.FromResult(_dapper.GetAll<Users>(query, parameters).ToList());
-
-        //            if (result.IsCompleted)
-        //            {
-        //                if (result.Result.Count != 0)
-        //                {
-        //                    var token = CommonFunctiton.CreateToken(result.Result[0]);
-        //                    response = Request.CreateResponse(new { user = result.Result[0], token = token });
-        //                }
-        //                else
-        //                {
-        //                    response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "Invalid UserName or Password");
-        //                }
-        //            }
-        //            else
-        //            {
-        //                response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "Invalid UserName or Password");
-        //            }
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            _logErrors.Writelog(ex, "Login", "UserLogin");
-        //            response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex.ToString());
-        //        }
-        //    }
-        //    else
-        //    {
-        //        _logErrors.WriteDirectLog("Login", "UserLogin: Model State is Not Valid");
-        //        response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Model State is Not Valid");
-        //    }
-        //    return response;
-        //}
 
         #region Login
         [AllowAnonymous]
