@@ -55,7 +55,7 @@ namespace EMP
             app.UseHangfireServer();
             app.UseHangfireDashboard();
 
-            //RecurringJob.AddOrUpdate("cleanup-screenshots", () => new ScreenshotCleanupJob().DeleteOldScreenshots(), Cron.Daily);
+            RecurringJob.AddOrUpdate("cleanup-screenshots", () => new ScreenshotCleanupJob().DeleteOldScreenshots(), Cron.Daily);
         }
     }
 }
