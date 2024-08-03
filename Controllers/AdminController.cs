@@ -322,14 +322,14 @@ namespace EMP.Controllers
 
                 var result = await _dapper.GetAllAsync<BreakMaster>(query);
 
-                if (result != null && result.Any())
-                {
-                    response = Request.CreateResponse(HttpStatusCode.OK, result);
-                }
-                else
-                {
-                    response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "No BreakMaster records found");
-                }
+                //if (result != null && result.Any())
+                //{
+                //    response = Request.CreateResponse(HttpStatusCode.OK, result);
+                //}
+                //else
+                //{
+                //    response = Request.CreateErrorResponse(HttpStatusCode.NotFound, "No BreakMaster records found");
+                //}
             }
             catch (Exception ex)
             {
