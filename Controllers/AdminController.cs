@@ -18,9 +18,6 @@ namespace EMP.Controllers
         private readonly LogErrors _logErrors = new LogErrors();
         CommonFunctiton objfun = new CommonFunctiton();
 
-
-
-       
         [HttpPost]
         public HttpResponseMessage GetBreakMaster(GetModels obj)
         {
@@ -342,8 +339,6 @@ namespace EMP.Controllers
 
             return response;
         }
-
-
 
         [HttpPost]
         public async Task<HttpResponseMessage> InsertBreakMaster(BreakMaster breakMaster)

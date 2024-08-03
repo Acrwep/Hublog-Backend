@@ -699,6 +699,7 @@ Gender, OrganizationId, RoleId, DesignationId, TeamId, Active, EmployeeID)
                         BE.End_Time, 
                         BE.BreakEntryId, 
                         BE.Status,
+                        BE.BreakDuration,
                         BM.Name as BreakType, 
                         BM.Active, 
                         BM.Max_Break_Time, 
@@ -751,7 +752,7 @@ Gender, OrganizationId, RoleId, DesignationId, TeamId, Active, EmployeeID)
 
         #endregion
 
-
+        #region GetBreakMasterById
         [HttpGet]
         public async Task<HttpResponseMessage> GetBreakMasterById(int id)
         {
@@ -780,7 +781,7 @@ Gender, OrganizationId, RoleId, DesignationId, TeamId, Active, EmployeeID)
 
             return response;
         }
-
+        #endregion
 
 
         #region Commented
