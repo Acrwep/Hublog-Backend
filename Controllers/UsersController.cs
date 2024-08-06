@@ -58,8 +58,8 @@ namespace EMP.Controllers
                     parameters.Add("@OrganizationId", attendanceModel.OrganizationId);
                     //parameters.Add("@AttendanceDate", attendanceModel.AttendanceDate);
                     parameters.Add("@AttendanceDate", formattedAttendanceDate);
-                    parameters.Add("@Start_Time", attendanceModel.Start_Time);
-                    parameters.Add("@End_Time", attendanceModel.End_Time);
+                    parameters.Add("@Start_Time", formattedStart_Time);
+                    parameters.Add("@End_Time", formattedEnd_Time);
                     //parameters.Add("@Start_Time", (object)attendanceModel.Start_Time ?? DBNull.Value);
                     //parameters.Add("@End_Time", (object)attendanceModel.End_Time ?? DBNull.Value);
                     parameters.Add("@Total_Time", null);
