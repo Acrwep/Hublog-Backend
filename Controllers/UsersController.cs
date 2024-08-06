@@ -15,6 +15,7 @@ using System.Web;
 using System.Web.Http;
 using System.Configuration;
 using System.Security.Claims;
+using System.Globalization;
 
 
 
@@ -33,6 +34,7 @@ namespace EMP.Controllers
         }
 
         #region NEW InsertAttendance
+
         [Authorize(Roles = "EMPLOYEE")]
         [HttpPost]
         public async Task<IHttpActionResult> InsertAttendance(List<UserAttendanceModel> model)
@@ -47,12 +49,19 @@ namespace EMP.Controllers
 
                 foreach (var attendanceModel in model)
                 {
+                    string formattedAttendanceDate = attendanceModel.AttendanceDate.ToString("yyyy-MM-dd HH:mm:ss");
+                    string formattedStart_Time = attendanceModel.Start_Time?.ToString("yyyy-MM-dd HH:mm:ss");
+                    string formattedEnd_Time = attendanceModel.End_Time?.ToString("yyyy-MM-dd HH:mm:ss");
+
                     var parameters = new DynamicParameters();
                     parameters.Add("@UserId", attendanceModel.UserId);
                     parameters.Add("@OrganizationId", attendanceModel.OrganizationId);
-                    parameters.Add("@AttendanceDate", attendanceModel.AttendanceDate);
+                    //parameters.Add("@AttendanceDate", attendanceModel.AttendanceDate);
+                    parameters.Add("@AttendanceDate", formattedAttendanceDate);
                     parameters.Add("@Start_Time", attendanceModel.Start_Time);
                     parameters.Add("@End_Time", attendanceModel.End_Time);
+                    //parameters.Add("@Start_Time", (object)attendanceModel.Start_Time ?? DBNull.Value);
+                    //parameters.Add("@End_Time", (object)attendanceModel.End_Time ?? DBNull.Value);
                     parameters.Add("@Total_Time", null);
                     parameters.Add("@Late_Time", null);
                     parameters.Add("@Status", attendanceModel.Status);
@@ -223,7 +232,6 @@ namespace EMP.Controllers
                     startDate = startOfWeek;
                     endDate = endOfWeek;
                 }
-
                 var queryAttendance = @"
             SELECT 
                 U.First_Name AS FirstName, 
