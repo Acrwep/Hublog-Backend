@@ -99,6 +99,24 @@ namespace EMP.Controllers
                     details = details.Replace("\"null\"", "\"\"");
                     details = details.Replace("null", "\"\"");
                     details = details.Replace("'", "");
+
+                    var formattedDetails = new List<dynamic>();
+                    foreach (var item in model)
+                    {
+                        formattedDetails.Add(new
+                        {
+                            item.OrganizationId,
+                            item.BreakEntryId,
+                            item.Id,
+                            item.UserId,
+                            BreakDate = item.BreakDate.ToString("yyyy-MM-dd HH:mm:ss"),
+                            Start_Time = item.Start_Time.ToString("yyyy-MM-dd HH:mm:ss"),
+                            End_Time = item.End_Time?.ToString("yyyy-MM-dd HH:mm:ss"),
+                            item.Status
+                        });
+                    }
+                    details = JsonConvert.SerializeObject(formattedDetails);
+
                     var result = Task.FromResult(_dapper.Get<ResultModel>("Exec [SP_BreakEntry] '" + details + "'"));
                     if (result.IsCompleted)
                     {
@@ -129,8 +147,6 @@ namespace EMP.Controllers
             }
             return response;
         }
-
-
         #endregion
 
         #region New UploadFile
@@ -157,6 +173,13 @@ namespace EMP.Controllers
 
             try
             {
+                DateTime parsedDate;
+                if (!DateTime.TryParse(SDate, out parsedDate))
+                {
+                    return Request.CreateResponse(HttpStatusCode.BadRequest, "Invalid date format.");
+                }
+                string formattedDate = parsedDate.ToString("yyyy-MM-dd HH:mm:ss");
+
                 if (System.Web.HttpContext.Current.Request.Files.AllKeys.Any())
                 {
                     var pic = System.Web.HttpContext.Current.Request.Files["MyImages"];
@@ -182,7 +205,7 @@ namespace EMP.Controllers
                         var parameters = new DynamicParameters();
                         parameters.Add("@UserId", UId);
                         parameters.Add("@OrganizationId", OId);
-                        parameters.Add("@ScreenShotDate", SDate);
+                        parameters.Add("@ScreenShotDate", formattedDate);
                         parameters.Add("@FileName", newFileName);
                         parameters.Add("@ImageData", imageData);
 
@@ -213,6 +236,85 @@ namespace EMP.Controllers
         }
 
 
+
+
+        //[Authorize(Roles = "SUPER_ADMIN,ADMIN,USERS,EMPLOYEE")]
+        //[HttpPost]
+        //public HttpResponseMessage UploadFile()
+        //{
+        //    Int32 UId = 0;
+        //    Int32 OId = 0;
+        //    string SType = "";
+        //    string SDate = "";
+
+        //    try
+        //    {
+        //        UId = Convert.ToInt32(Request.Headers.GetValues("UId").First());
+        //        OId = Convert.ToInt32(Request.Headers.GetValues("OId").First());
+        //        SType = Request.Headers.GetValues("SType").First();
+        //        SDate = Request.Headers.GetValues("SDate").First();
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return Request.CreateResponse(HttpStatusCode.BadRequest, $"Header parsing error: {ex.Message}");
+        //    }
+
+        //    try
+        //    {
+        //        if (System.Web.HttpContext.Current.Request.Files.AllKeys.Any())
+        //        {
+        //            var pic = System.Web.HttpContext.Current.Request.Files["MyImages"];
+        //            if (pic != null && pic.ContentLength > 0)
+        //            {
+        //                var fileName = Path.GetFileName(pic.FileName);
+        //                var fileExtension = Path.GetExtension(fileName);
+        //                var imageName = (SType == "ScreenShots") ? fileName.Replace(fileExtension, "") : Guid.NewGuid().ToString();
+        //                var newFileName = imageName + fileExtension;
+
+        //                byte[] imageData;
+        //                using (var ms = new MemoryStream())
+        //                {
+        //                    pic.InputStream.CopyTo(ms);
+        //                    imageData = ms.ToArray();
+        //                }
+
+        //                if (imageData.Length == 0)
+        //                {
+        //                    return Request.CreateResponse(HttpStatusCode.BadRequest, "Image data is empty.");
+        //                }
+
+        //                var parameters = new DynamicParameters();
+        //                parameters.Add("@UserId", UId);
+        //                parameters.Add("@OrganizationId", OId);
+        //                parameters.Add("@ScreenShotDate", SDate);
+        //                parameters.Add("@FileName", newFileName);
+        //                parameters.Add("@ImageData", imageData);
+
+        //                string connectionString = GetConnectionString();
+        //                using (var connection = new SqlConnection(connectionString))
+        //                {
+        //                    connection.Open();
+        //                    connection.Execute("SP_InsertScreenShot", parameters, commandType: CommandType.StoredProcedure);
+        //                }
+
+        //                return Request.CreateResponse(HttpStatusCode.OK, "Upload successful.");
+        //            }
+        //            else
+        //            {
+        //                return Request.CreateResponse(HttpStatusCode.BadRequest, "No file uploaded.");
+        //            }
+        //        }
+        //        else
+        //        {
+        //            return Request.CreateResponse(HttpStatusCode.BadRequest, "No files found.");
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logErrors.Writelog(ex, "User", "UploadFile");
+        //        return Request.CreateResponse(HttpStatusCode.InternalServerError, ex.Message);
+        //    }
+        //}
         #endregion
 
         #region GetUserAttendanceDetails
