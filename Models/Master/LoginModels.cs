@@ -16,9 +16,9 @@ namespace EMP.Models.Master
         public int OrganizationId { get; set; }
         public int UserId { get; set; }
         public int TeamId { get; set; }
-        public string CDate { get; set; }
-        public string FDate { get; set; }
-        public string TDate { get; set; }
+        public DateTime CDate { get; set; }
+        public DateTime FDate { get; set; }
+        public DateTime TDate { get; set; }
 
     }
     public class Users
